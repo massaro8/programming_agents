@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/agentready/audit.schema.json",
+  "title": "AgentReady Audit",
+  "type": "object",
+  "required": ["request", "scope", "changed_files", "checks", "residual_risks"],
+  "properties": {
+    "request": {"type": "string"},
+    "scope": {"type": "string"},
+    "changed_files": {"type": "array", "items": {"type": "string"}},
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["command", "status"],
+        "properties": {
+          "command": {"type": "string"},
+          "status": {"type": "string", "enum": ["pass", "fail", "not_run"]},
+          "exit_code": {"type": ["integer", "null"]}
+        },
+        "additionalProperties": true
+      }
+    },
+    "residual_risks": {"type": "array", "items": {"type": "string"}}
+  },
+  "additionalProperties": true
+}

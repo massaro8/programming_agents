@@ -1,0 +1,5 @@
+from {{ package_name }}.main import greet
+
+
+def test_greet() -> None:
+    assert greet("AgentReady") == "Hello, AgentReady!"

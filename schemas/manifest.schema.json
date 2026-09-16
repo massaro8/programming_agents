@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/agentready/manifest.schema.json",
+  "title": "AgentReady Manifest",
+  "type": "object",
+  "required": ["schema", "profile", "generator", "generator_version", "ownership"],
+  "properties": {
+    "schema": {"type": "integer", "const": 1},
+    "profile": {"type": "string"},
+    "generator": {"type": "string", "const": "agentready"},
+    "generator_version": {"type": "string", "minLength": 1},
+    "ownership": {
+      "type": "object",
+      "required": ["project_owned", "shared", "generated"],
+      "properties": {
+        "project_owned": {"type": "array", "items": {"type": "string"}},
+        "shared": {"type": "array", "items": {"type": "string"}},
+        "generated": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": true
+}
