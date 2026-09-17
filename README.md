@@ -2,86 +2,134 @@
 
 > Bootstrap once. Own the repository forever.
 
-AgentReady is a vendor-neutral, detachable repository engineering layer for coding agents.
-Its goal is not to replace Codex, Claude Code, Copilot, Cursor, or other coding agents.
-It makes a repository easier for those agents and humans to understand, modify, verify,
-and maintain without introducing a runtime dependency on AgentReady.
+AgentReady is a small, vendor-neutral CLI that generates a Python repository with concise coding-
+agent guidance, checks its structural integrity, and can remove its own maintenance metadata. The
+generated application remains an ordinary repository: it does not import AgentReady or require an
+AgentReady account, backend, network service, Copier, or Jinja for normal development.
 
 ## Status
 
-This repository is the public-ready engineering scaffold for the V0.1 implementation.
-The first product milestone is intentionally narrow:
+Version 0.1.0 is a **practical-validation candidate**, not a production-stable release. The V0.1
+surface is intentionally limited to:
 
-1. `agentready init` - bootstrap a new agent-ready repository.
-2. `agentready doctor` - inspect repository readiness and instruction drift.
-3. `agentready detach` - remove AgentReady maintenance metadata while keeping the project usable.
+- `agentready init PATH`
+- `agentready doctor [PATH] [--format human|json]`
+- `agentready detach [PATH]`
 
-Only after those three commands are stable should the project add `adopt`, `sync`, `audit`,
-and safe opt-in updates.
+Adoption of existing repositories, updates, synchronization, an audit command, additional language
+profiles, remote templates, plugins, telemetry, accounts, and hosted services are not implemented.
 
-## Core promises
+## Requirements and installation
 
-- **No runtime lock-in**: generated applications never import AgentReady.
-- **No account or backend required**.
-- **Vendor-neutral**: `AGENTS.md` is the public repository instruction entry point.
-- **Progressive disclosure**: short always-loaded instructions; workflows and standards on demand.
-- **Evidence over claims**: checks, exit codes, changed files, and residual risks are explicit.
-- **Project ownership**: the generator never silently retakes ownership of user code.
-- **Detachable by design**: deleting maintenance metadata must not break build, test, or agent usage.
-
-## Engineering model
-
-```text
-Task
-  -> classify complexity/risk
-  -> retrieve minimum sufficient context
-  -> strong planning only when justified
-  -> focused implementation
-  -> deterministic verification
-  -> strong review only when risk/uncertainty justifies it
-```
-
-Recommended coding-agent routing for this repository:
-
-```text
-GPT-5.6 Sol   -> coordinator / architecture / cross-module / high-risk / final audit
-GPT-5.6 Luna  -> scoped implementation / tests / mechanical edits / documentation sync
-CI + tools    -> authoritative deterministic gates
-```
-
-This is a routing policy, not a requirement to use two models for every task.
-
-## Repository map
-
-- `AGENTS.md` - compact cross-agent engineering policy.
-- `CLAUDE.md` - thin Claude-specific adapter.
-- `.agents/skills/` - on-demand reusable workflows.
-- `docs/ARCHITECTURE.md` - target architecture and boundaries.
-- `docs/PRODUCT_SPEC.md` - product scope and non-goals.
-- `docs/ROADMAP.md` - implementation sequence and gates.
-- `docs/DETACHMENT_CONTRACT.md` - formal no-lock-in contract.
-- `methodology/` - canonical engineering guidance compiled into generated repositories.
-- `schemas/` - machine-readable contracts for future metadata and audit artifacts.
-- `scripts/generate_codebase_map.py` - deterministic repository navigation map.
-- `START_SOL_COORDINATOR.md` - kickoff prompt for the coordinator.
-
-## Local baseline
+AgentReady requires Python 3.12 or newer. This repository has not been published to PyPI; from a
+source checkout, install and run it with uv:
 
 ```bash
 uv sync --all-groups
-uv run ruff check .
+uv run agentready --help
+uv run agentready --version
+```
+
+Once a distribution is published, the intended transient invocation is:
+
+```bash
+uvx agentready init my-project
+```
+
+No AgentReady installation is needed inside the generated project.
+
+## Quickstart
+
+From the directory where the new project should be created:
+
+```bash
+uv run agentready init my-project
+uv run agentready doctor my-project
+uv run agentready doctor my-project --format json
+
+cd my-project
+uv sync --all-groups
+uv run pytest
+```
+
+The generated repository also documents its complete Ruff, mypy, pytest, and build workflow. To
+stop using AgentReady while keeping the application and its guidance:
+
+```bash
+# From the parent directory:
+cd ..
+uv run agentready detach my-project
+
+# Or, with the CLI installed, from inside the generated project:
+agentready detach .
+```
+
+`detach` removes only the recognized `.agentready/` maintenance boundary. It preserves source,
+tests, configuration, CI, README, architecture documentation, `AGENTS.md`, `CLAUDE.md`, and
+`docs/agent/**`. A second detach returns a deterministic non-zero “not managed or already detached”
+result.
+
+## What doctor checks
+
+Doctor is read-only, deterministic, local, and non-AI. For the bundled Python profile it checks:
+
+- AgentReady manifest identity and supported schema;
+- safe, unique ownership paths and declared artifact presence;
+- `AGENTS.md`, declared adapters, and repository-local guidance references;
+- expected Python source/test/configuration/CI structure;
+- absence of an AgentReady dependency in supported dependency tables;
+- structural prerequisites needed for safe detach.
+
+It does not run project tests, builds, Git operations, network requests, or editorial/LLM review.
+Human and schema-1 JSON modes use identical findings and exit `0` only for a healthy repository.
+
+## No-lock-in evidence
+
+The automated detachment qualification builds and installs the AgentReady wheel, generates and
+diagnoses a project, runs its full toolchain, detaches it, deletes the AgentReady tool environment,
+creates a fresh project environment, and repeats sync, format, lint, type checking, tests, and
+build. It also proves:
+
+- only `.agentready/` disappears;
+- useful guidance remains byte-identical and locally linked;
+- AgentReady, Copier, and Jinja are absent from the project environment;
+- application source and artifacts contain no AgentReady framework import or package.
+
+See [DET-002 audit](docs/audits/DET_002_AUDIT.md) and the
+[detachment contract](docs/DETACHMENT_CONTRACT.md).
+
+## Trust and security boundary
+
+V0.1 renders only the trusted template bundled in the installed package. Copier is an internal
+generation engine; AgentReady disables unsafe template execution and does not execute remote
+templates, arbitrary hooks, community plugins, repository commands, or network checks. Init refuses
+non-empty targets, doctor is read-only, and detach fails closed unless it recognizes the fixed local
+metadata boundary. AgentReady never runs destructive Git commands.
+
+Repository content and suggested commands should still be treated as untrusted input. See
+[SECURITY.md](SECURITY.md).
+
+## Current limitations
+
+- Python 3.12+ and one bundled Python project profile only.
+- Init supports new missing or empty directories, not adoption or updating.
+- Doctor performs structural checks, not Git analysis or executable quality auditing.
+- Detach supports recognized schema-1 AgentReady projects and has no force or repair mode.
+- Symlink safety tests run on Linux CI; local Windows runs may skip them without Developer Mode.
+- V0.1 is prepared for practical validation but has not completed that campaign.
+
+## Development
+
+```bash
+uv sync --all-groups
 uv run ruff format --check .
+uv run ruff check .
 uv run mypy src
 uv run pytest
+uv build
 uv run python scripts/generate_codebase_map.py --check
 ```
 
-## Public release rule
-
-Do not publish V0.1 as "stable" until the detachment test proves:
-
-```text
-generate -> verify -> detach -> remove AgentReady metadata/tool -> verify again
-```
-
-See `docs/ROADMAP.md`.
+The complete next-phase scenarios and manual metrics are in
+[docs/PRACTICAL_VALIDATION_PLAN.md](docs/PRACTICAL_VALIDATION_PLAN.md). Architecture, product scope,
+roadmap, and permanent milestone evidence live under `docs/`.

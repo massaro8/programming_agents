@@ -35,22 +35,26 @@ Build only three user-visible capabilities:
 - successful generated-project smoke test.
 
 ### 1B - `doctor`
-Start with deterministic checks only:
-- repository and Git status;
-- expected instruction files;
-- broken local references;
-- duplicate obvious guidance;
-- instruction budget estimates;
-- presence of build/lint/type/test commands;
+V0.1 implements deterministic structural checks only:
+- supported manifest/profile identity and ownership coherence;
+- expected repository and instruction files;
+- broken repository-local guidance references;
+- static AgentReady dependency independence;
 - detachability preconditions;
-- text and JSON output.
+- human and schema-1 JSON output.
+
+Git state, duplicate/conflicting guidance, adapter-drift compilation, instruction budgets, and
+executable quality auditing remain later evidence-based doctor/audit work.
 
 ### 1C - `detach`
-- metadata-only deletion/conversion;
+- fixed-boundary metadata-only deletion;
 - conservative path allowlist;
-- dry-run by default if ambiguity exists;
+- fail-closed preflight with no force path;
 - no source/test/CI deletion;
 - detachment E2E test.
+
+The V0.1 boundary is unambiguously `.agentready/`, so `detach` applies that removal directly.
+Preview/update semantics remain post-V0.1 work.
 
 Phase 1 release gate:
 
@@ -59,6 +63,9 @@ generate -> doctor PASS -> fixture checks PASS -> detach -> fixture checks PASS
 ```
 
 No V0.1 release without this gate.
+
+The automated Phase 1 gate is complete. The repository is a V0.1 practical-validation candidate;
+the scenarios in `docs/PRACTICAL_VALIDATION_PLAN.md` are the next phase, not completed evidence.
 
 ## Phase 2 - Existing repositories and evidence
 
@@ -106,7 +113,7 @@ Only after real usage:
 4. `INIT-002` Add generated-project smoke fixture and tests.
 5. `DOC-001` Implement first deterministic doctor checks.
 6. `DOC-002` Add JSON doctor schema/output.
-7. `DET-001` Implement detach dry-run + apply.
+7. `DET-001` Implement fixed-boundary fail-closed detach.
 8. `DET-002` Add full detachment E2E test.
 9. `REL-001` Public V0.1 readiness audit.
 

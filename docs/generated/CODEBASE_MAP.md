@@ -1,6 +1,6 @@
 # Codebase Map
 
-Structure fingerprint: `742ae6ab5943`
+Structure fingerprint: `bce7489e8295`
 
 Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 
@@ -68,15 +68,20 @@ Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 ### `docs`
 - `docs/ARCHITECTURE.md`
 - `docs/DETACHMENT_CONTRACT.md`
+- `docs/PRACTICAL_VALIDATION_PLAN.md`
 - `docs/PRODUCT_SPEC.md`
 - `docs/ROADMAP.md`
 - `docs/adr/0000-template.md`
 - `docs/audits/BOOT_001_AUDIT.md`
 - `docs/audits/BOOT_002_AUDIT.md`
+- `docs/audits/DET_001_AUDIT.md`
+- `docs/audits/DET_002_AUDIT.md`
 - `docs/audits/DOC_001_AUDIT.md`
+- `docs/audits/DOC_002_AUDIT.md`
 - `docs/audits/INIT_001_AUDIT.md`
 - `docs/audits/INIT_002_AUDIT.md`
 - `docs/audits/PHASE0_BASELINE_AUDIT.md`
+- `docs/audits/REL_001_AUDIT.md`
 - `docs/features/template.md`
 - `docs/generated/CODEBASE_MAP.md`
 
@@ -96,6 +101,7 @@ Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 
 ### `schemas`
 - `schemas/audit.schema.json`
+- `schemas/doctor.schema.json`
 - `schemas/manifest.schema.json`
 
 ### `scripts`
@@ -107,8 +113,11 @@ Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 - `src/agentready/core/__init__.py`
 - `src/agentready/core/ownership.py`
 - `src/agentready/core/project.py`
+- `src/agentready/detach/__init__.py`
+- `src/agentready/detach/service.py`
 - `src/agentready/doctor/__init__.py`
 - `src/agentready/doctor/inspector.py`
+- `src/agentready/doctor/serialization.py`
 - `src/agentready/render/__init__.py`
 - `src/agentready/render/generator.py`
 - `src/agentready/templates/__init__.py`
@@ -130,7 +139,10 @@ Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 - `src/agentready/templates/python/template/tests/test_main.py.jinja`
 
 ### `tests`
+- `tests/test_detach.py`
+- `tests/test_detached_project.py`
 - `tests/test_doctor.py`
+- `tests/test_doctor_json.py`
 - `tests/test_generated_project.py`
 - `tests/test_init.py`
 - `tests/test_ownership.py`

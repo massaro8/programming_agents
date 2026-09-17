@@ -33,13 +33,12 @@ Acceptance:
 Read-only inspection of repository readiness.
 
 Acceptance:
-- reports Git/readiness state;
-- validates referenced instruction/workflow paths;
-- reports duplicate/conflicting instructions when detectable;
-- reports adapter drift when adapter generation exists;
-- reports always-loaded versus on-demand instruction budget;
-- reports detachability status;
-- supports machine-readable JSON output.
+- recognizes the supported AgentReady manifest and Python profile;
+- validates manifest structure, ownership paths, declared artifacts, and local guidance references;
+- checks the canonical Python source/test/configuration/CI structure;
+- checks supported dependency tables for an AgentReady dependency;
+- reports structural detach prerequisites without mutating the repository;
+- provides deterministic human and schema-1 JSON output with matching exit semantics.
 
 ### `agentready detach PATH`
 
@@ -67,6 +66,10 @@ Acceptance:
 ## Follow-up scope
 
 V0.2: `adopt`, adapter `sync`, evidence-based `audit`.
+
+Candidate follow-up doctor checks include Git state, duplicate/conflicting guidance, exact adapter
+drift, and instruction-budget diagnostics. They require explicit policies and are not V0.1
+capabilities.
 
 V0.3: safe preview-first update flow backed by Copier and explicit ownership classes.
 
