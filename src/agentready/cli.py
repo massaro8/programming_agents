@@ -11,6 +11,7 @@ from collections.abc import Sequence
 from pathlib import Path
 
 from agentready import __version__
+from agentready.doctor.inspector import format_report, inspect
 from agentready.render.generator import GeneratorError, generate_project
 
 
@@ -27,6 +28,8 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers = parser.add_subparsers(dest="command")
     init_parser = subparsers.add_parser("init", help="create a trusted Python project")
     init_parser.add_argument("target", type=Path)
+    doctor_parser = subparsers.add_parser("doctor", help="inspect a repository")
+    doctor_parser.add_argument("path", nargs="?", type=Path, default=Path("."))
     return parser
 
 
@@ -41,6 +44,10 @@ def main(argv: Sequence[str] | None = None) -> int:
             return 1
         print(f"Created project at {args.target}")
         return 0
+    if args.command == "doctor":
+        report = inspect(args.path)
+        print(format_report(report))
+        return 0 if report.healthy else 1
     parser.print_help()
     return 0
 

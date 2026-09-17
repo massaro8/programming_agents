@@ -1,6 +1,6 @@
 # Codebase Map
 
-Structure fingerprint: `8214e4eeb238`
+Structure fingerprint: `742ae6ab5943`
 
 Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 
@@ -73,7 +73,9 @@ Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 - `docs/adr/0000-template.md`
 - `docs/audits/BOOT_001_AUDIT.md`
 - `docs/audits/BOOT_002_AUDIT.md`
+- `docs/audits/DOC_001_AUDIT.md`
 - `docs/audits/INIT_001_AUDIT.md`
+- `docs/audits/INIT_002_AUDIT.md`
 - `docs/audits/PHASE0_BASELINE_AUDIT.md`
 - `docs/features/template.md`
 - `docs/generated/CODEBASE_MAP.md`
@@ -105,6 +107,8 @@ Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 - `src/agentready/core/__init__.py`
 - `src/agentready/core/ownership.py`
 - `src/agentready/core/project.py`
+- `src/agentready/doctor/__init__.py`
+- `src/agentready/doctor/inspector.py`
 - `src/agentready/render/__init__.py`
 - `src/agentready/render/generator.py`
 - `src/agentready/templates/__init__.py`
@@ -126,6 +130,8 @@ Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 - `src/agentready/templates/python/template/tests/test_main.py.jinja`
 
 ### `tests`
+- `tests/test_doctor.py`
+- `tests/test_generated_project.py`
 - `tests/test_init.py`
 - `tests/test_ownership.py`
 - `tests/test_project.py`
