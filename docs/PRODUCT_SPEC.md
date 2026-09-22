@@ -25,6 +25,8 @@ Acceptance:
 - refuses unsafe overwrite of non-empty directories;
 - produces a valid Python starter repository;
 - produces compact `AGENTS.md` and selected thin agent adapters;
+- creates a repository-local feature template, deterministic generated registry, and stdlib-only
+  work-intake utility shared by every Python profile;
 - creates optional `.agentready/` maintenance metadata;
 - generated project passes its documented baseline checks.
 
@@ -36,6 +38,8 @@ Acceptance:
 - recognizes the supported AgentReady manifest and Python profile;
 - validates manifest structure, ownership paths, declared artifacts, and local guidance references;
 - checks the canonical Python source/test/configuration/CI structure;
+- validates feature specification metadata and exact generated-registry consistency without
+  executing repository code;
 - checks supported dependency tables for an AgentReady dependency;
 - reports structural detach prerequisites without mutating the repository;
 - provides deterministic human and schema-1 JSON output with matching exit semantics.
@@ -47,6 +51,7 @@ Removes AgentReady maintenance ownership without removing useful repository arti
 Acceptance:
 - removes only AgentReady-specific maintenance metadata/provenance;
 - leaves source/tests/CI/AGENTS/docs usable;
+- leaves feature specifications, registry, template, and local registry utility usable;
 - generated project still builds/tests/lints afterward;
 - normal Codex/Claude usage does not require AgentReady.
 

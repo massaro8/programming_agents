@@ -111,6 +111,7 @@ def test_formal_detach_no_lock_in_qualification(tmp_path: Path, profile: str) ->
     assert manifest["profile"] == profile
     for command in BASELINE:
         run([uv, *command[1:]], project, env)
+    run([uv, "run", "python", "scripts/feature_registry.py", "check"], project, env)
     run([uv, "build"], project, env)
     assert_frameworks_absent(uv, project, env)
     before = snapshot(project)
@@ -130,6 +131,7 @@ def test_formal_detach_no_lock_in_qualification(tmp_path: Path, profile: str) ->
     assert set(after) == set(before) - removed
     assert all(after[name] == before[name] for name in after)
     assert not (project / ".agentready").exists()
+    run([uv, "run", "python", "scripts/feature_registry.py", "check"], project, env)
     shutil.rmtree(tool_env)
     assert not tool_env.exists()
     for transient in (".venv", ".pytest_cache", ".ruff_cache", ".mypy_cache", "dist", "build"):

@@ -24,27 +24,34 @@ capability deferred beyond V0.1, or an unbounded task expansion.
 
 ### Objective
 
-Evaluate whether generated guidance steers a coding agent toward a small typed feature, behavior
-tests, minimal dependencies, and a focused diff.
+Evaluate whether generated guidance turns a plain OpenRouter requirement into a persistent feature
+specification, then steers a coding agent toward explicit boundaries, deterministic tests, justified
+dependencies, and a focused diff.
 
 ### Setup
 
-Run `agentready init practical-app --profile application`, sync it, verify its baseline tests, and
-open it in a fresh coding-agent session.
+Run `agentready init practical-app --profile application`, verify its baseline tests, and open it in
+a fresh coding-agent session. The repository starts with an empty feature registry.
 
 ### Prompt
 
-> Add a typed in-memory greeting history feature to the application profile. Keep
-> `greet("AgentReady") == "Hello, AgentReady!"`, expose a small API for recording and listing
-> greetings, add behavior tests, and add no unnecessary dependencies. Follow the repository
-> guidance and run its required gates.
+> Implement this as the next project feature: fetch the public OpenRouter models catalog and save
+> the first 10 model records to a JSON file. Keep network and file-system effects at explicit
+> boundaries, preserve the existing greeting behavior, add deterministic tests that do not require
+> live network access, and add no dependency without justification.
 
 ### Procedure and evidence
 
-- Observe whether the agent reads `AGENTS.md` and the referenced feature/testing documents.
+- Observe whether the agent reads `AGENTS.md`, creates `F001` with the local feature registry,
+  runs `sync`, and then reads only that selected specification. The user does not manually create
+  the feature specification.
 - Record its plan, files read/changed, tests added, and verification commands.
+- Require the agent to transition `F001` through `IN_PROGRESS` to `DONE`, record the implementation
+  result and verification in the spec, and run `python scripts/feature_registry.py check`.
 - Require Ruff format/check, mypy, and pytest to pass.
 - Review for unnecessary abstractions, dependency additions, unrelated edits, and missing tests.
+- Confirm no `F001` is created in the AgentReady product repository and no issue-tracker, backend,
+  telemetry, or unrelated project-management machinery is introduced.
 
 Success means the feature and behavior tests pass on the first accepted implementation or after a
 small recorded repair, with no out-of-scope edits.

@@ -1,6 +1,6 @@
 # Codebase Map
 
-Structure fingerprint: `2cac7ceb6619`
+Structure fingerprint: `6de2daae9311`
 
 Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 
@@ -78,6 +78,7 @@ Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 - `docs/audits/DET_002_AUDIT.md`
 - `docs/audits/DOC_001_AUDIT.md`
 - `docs/audits/DOC_002_AUDIT.md`
+- `docs/audits/FLOW_001_AUDIT.md`
 - `docs/audits/INIT_001_AUDIT.md`
 - `docs/audits/INIT_002_AUDIT.md`
 - `docs/audits/PHASE0_BASELINE_AUDIT.md`
@@ -118,6 +119,7 @@ Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 - `src/agentready/detach/__init__.py`
 - `src/agentready/detach/service.py`
 - `src/agentready/doctor/__init__.py`
+- `src/agentready/doctor/features.py`
 - `src/agentready/doctor/inspector.py`
 - `src/agentready/doctor/serialization.py`
 - `src/agentready/render/__init__.py`
@@ -129,11 +131,9 @@ Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 - `src/agentready/templates/python/template/.github/workflows/ci.yml`
 - `src/agentready/templates/python/template/.gitignore`
 - `src/agentready/templates/python/template/.python-version`
-- `src/agentready/templates/python/template/AGENTS.md`
 - `src/agentready/templates/python/template/AGENTS.md.jinja`
 - `src/agentready/templates/python/template/CLAUDE.md`
 - `src/agentready/templates/python/template/README.md.jinja`
-- `src/agentready/templates/python/template/docs/ARCHITECTURE.md`
 - `src/agentready/templates/python/template/docs/ARCHITECTURE.md.jinja`
 - `src/agentready/templates/python/template/docs/agent/index.md`
 - `src/agentready/templates/python/template/docs/agent/standards/architecture.md.jinja`
@@ -141,10 +141,12 @@ Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 - `src/agentready/templates/python/template/docs/agent/standards/python.md`
 - `src/agentready/templates/python/template/docs/agent/standards/testing.md`
 - `src/agentready/templates/python/template/docs/agent/workflows/bugfix.md`
-- `src/agentready/templates/python/template/docs/agent/workflows/feature.md`
 - `src/agentready/templates/python/template/docs/agent/workflows/feature.md.jinja`
 - `src/agentready/templates/python/template/docs/agent/workflows/refactor.md`
+- `src/agentready/templates/python/template/docs/features/index.md`
+- `src/agentready/templates/python/template/docs/features/template.md`
 - `src/agentready/templates/python/template/pyproject.toml.jinja`
+- `src/agentready/templates/python/template/scripts/feature_registry.py`
 - `src/agentready/templates/python/template/src/{{ package_name }}/__init__.py.jinja`
 - `src/agentready/templates/python/template/src/{{ package_name }}/adapters/__init__.py.jinja`
 - `src/agentready/templates/python/template/src/{{ package_name }}/adapters/console.py.jinja`
@@ -154,7 +156,6 @@ Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 - `src/agentready/templates/python/template/src/{{ package_name }}/config.py.jinja`
 - `src/agentready/templates/python/template/src/{{ package_name }}/domain/__init__.py.jinja`
 - `src/agentready/templates/python/template/src/{{ package_name }}/domain/errors.py.jinja`
-- `src/agentready/templates/python/template/src/{{ package_name }}/main.py`
 - `src/agentready/templates/python/template/src/{{ package_name }}/main.py.jinja`
 - `src/agentready/templates/python/template/tests/test_main.py.jinja`
 
@@ -163,6 +164,7 @@ Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 - `tests/test_detached_project.py`
 - `tests/test_doctor.py`
 - `tests/test_doctor_json.py`
+- `tests/test_feature_registry.py`
 - `tests/test_generated_project.py`
 - `tests/test_init.py`
 - `tests/test_ownership.py`

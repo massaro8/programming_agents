@@ -1,15 +1,31 @@
 # Feature workflow
 
-1. Understand the requested behavior and acceptance criteria.
-2. Localize the current implementation and relevant tests by searching before broad reading.
-3. Assess callers, data flow, dependencies, and documentation impact.
+1. Capture or select exactly one feature.
+   - For a direct request, run `python scripts/feature_registry.py new "TITLE"`, faithfully fill its
+     specification from the request, then mark it `READY` and run `sync` when requirements are
+     sufficient. Do not invent major requirements. If an essential decision is missing, ask the
+     user or mark it `BLOCKED`, record the decision needed, sync, and stop.
+   - For existing work, run `python scripts/feature_registry.py next-ready`, select only the returned
+     ID, and stop on `NO_READY_FEATURE`.
+2. Understand the selected specification and acceptance criteria. Read only that feature, not the
+   whole registry.
+3. Localize the current implementation and relevant tests by searching before broad reading.
+4. Assess callers, data flow, dependencies, and documentation impact.
 {% if profile == "minimal" -%}
-4. Identify the smallest owning module; introduce a new boundary only when the feature needs it.
+5. Identify the smallest owning module; introduce a new boundary only when the feature needs it.
 {% else -%}
-4. Identify the owning layer or domain before editing; preserve the **{{ profile }}** dependency
+5. Identify the owning layer or domain before editing; preserve the **{{ profile }}** dependency
    direction.
 {% endif -%}
-5. Define verification before implementation.
-6. Implement the minimum coherent change without speculative layers or dependencies.
-7. Run the targeted behavior test, then the required repository gates.
-8. Review the final diff for scope, ownership, and accidental changes.
+6. Define verification before implementation.
+7. Mark the feature `IN_PROGRESS` and run `sync` before editing implementation code.
+8. Implement the minimum coherent change without speculative layers or dependencies.
+9. Run the targeted behavior test, then the required repository gates.
+10. Review the final diff for scope, ownership, and accidental changes.
+11. Update the implementation record with result, files, dependencies, verification, important
+    decisions, deviations, and follow-up candidates. Do not implement follow-ups opportunistically.
+12. Mark the feature `DONE` only after its acceptance criteria and gates pass, run `sync`, run
+    `check`, and stop. Do not automatically begin another feature.
+
+At any step, if work becomes externally blocked, mark the feature `BLOCKED`, record the exact
+blocker and smallest next action, run `sync`, and stop.

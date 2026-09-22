@@ -23,6 +23,8 @@ PROJECT_OWNED = [
 ]
 SHARED = [
     "AGENTS.md",
+    "docs/features/template.md",
+    "scripts/feature_registry.py",
     "docs/agent/index.md",
     "docs/agent/standards/python.md",
     "docs/agent/standards/architecture.md",
@@ -32,7 +34,7 @@ SHARED = [
     "docs/agent/workflows/bugfix.md",
     "docs/agent/workflows/refactor.md",
 ]
-GENERATED = ["CLAUDE.md", ".agentready/manifest.toml"]
+GENERATED = ["CLAUDE.md", ".agentready/manifest.toml", "docs/features/index.md"]
 EXPECTED_FILES = set(PROJECT_OWNED + SHARED + GENERATED)
 
 

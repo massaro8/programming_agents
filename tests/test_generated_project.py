@@ -79,6 +79,8 @@ def test_qualify_independent_generated_project(tmp_path: Path, profile: str) -> 
     ownership = {key: set(value) for key, value in manifest["ownership"].items()}
     assert ownership["shared"] == {
         "AGENTS.md",
+        "docs/features/template.md",
+        "scripts/feature_registry.py",
         "docs/agent/index.md",
         "docs/agent/standards/python.md",
         "docs/agent/standards/architecture.md",
@@ -88,7 +90,11 @@ def test_qualify_independent_generated_project(tmp_path: Path, profile: str) -> 
         "docs/agent/workflows/bugfix.md",
         "docs/agent/workflows/refactor.md",
     }
-    assert ownership["generated"] == {"CLAUDE.md", ".agentready/manifest.toml"}
+    assert ownership["generated"] == {
+        "CLAUDE.md",
+        ".agentready/manifest.toml",
+        "docs/features/index.md",
+    }
     assert profile == "service" or not any("adapters/" in path for path in first_files)
     if profile == "minimal":
         assert not any(
@@ -152,6 +158,11 @@ def test_qualify_independent_generated_project(tmp_path: Path, profile: str) -> 
     )
     run([uv, "run", "python", "-c", probe], first_project, project_env)
     run([uv, "build"], first_project, project_env)
+    run(
+        [uv, "run", "python", "scripts/feature_registry.py", "check"],
+        first_project,
+        project_env,
+    )
     built = next((first_project / "dist").glob("*.whl"))
     with zipfile.ZipFile(built) as archive:
         names = set(archive.namelist())
