@@ -1,0 +1,15 @@
+"""Application use case for producing greetings."""
+
+from {{ package_name }}.domain.errors import InvalidGreetingName
+
+
+class GreetingService:
+    """Coordinate the greeting use case without infrastructure dependencies."""
+
+    def __init__(self, greeting_prefix: str = "Hello") -> None:
+        self._greeting_prefix = greeting_prefix
+
+    def greet(self, name: str) -> str:
+        if not name:
+            raise InvalidGreetingName("name must not be empty")
+        return f"{self._greeting_prefix}, {name}!"

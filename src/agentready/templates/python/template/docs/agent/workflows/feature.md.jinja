@@ -1,0 +1,15 @@
+# Feature workflow
+
+1. Understand the requested behavior and acceptance criteria.
+2. Localize the current implementation and relevant tests by searching before broad reading.
+3. Assess callers, data flow, dependencies, and documentation impact.
+{% if profile == "minimal" -%}
+4. Identify the smallest owning module; introduce a new boundary only when the feature needs it.
+{% else -%}
+4. Identify the owning layer or domain before editing; preserve the **{{ profile }}** dependency
+   direction.
+{% endif -%}
+5. Define verification before implementation.
+6. Implement the minimum coherent change without speculative layers or dependencies.
+7. Run the targeted behavior test, then the required repository gates.
+8. Review the final diff for scope, ownership, and accidental changes.

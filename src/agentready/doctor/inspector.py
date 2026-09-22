@@ -9,6 +9,7 @@ from enum import Enum
 from pathlib import Path
 
 from agentready.core.ownership import ArtifactOwnership, OwnershipClass
+from agentready.core.profiles import get_profile
 from agentready.core.project import Project, ProjectPath
 
 CHECKS = (
@@ -170,13 +171,19 @@ def inspect(root: Path | str = ".") -> DoctorReport:
     )
     manifest: dict[str, object] = {}
     valid = False
+    profile_contract = None
     if manifest_ok and manifest_path is not None:
         try:
             parsed = tomllib.loads(manifest_path.read_text(encoding="utf-8"))
             ownership = parsed.get("ownership")
+            profile_name = parsed.get("profile")
+            try:
+                profile_contract = get_profile(profile_name)  # type: ignore[arg-type]
+            except ValueError:
+                profile_contract = None
             valid = (
                 parsed.get("schema") == 1
-                and parsed.get("profile") == "python"
+                and profile_contract is not None
                 and parsed.get("generator") == "agentready"
                 and isinstance(parsed.get("generator_version"), str)
                 and bool(parsed["generator_version"])
@@ -201,12 +208,28 @@ def inspect(root: Path | str = ".") -> DoctorReport:
     ownership_entries: list[ArtifactOwnership] = []
     paths_ok = valid
     if valid:
+        expected = {
+            cls: set(paths)
+            for cls, paths in profile_contract.ownership_paths(  # type: ignore[union-attr]
+                project.path.name.replace("-", "_")
+            ).items()
+        }
         for cls in OwnershipClass:
             for value in manifest["ownership"][cls.value]:  # type: ignore[index]
                 try:
                     ownership_entries.append(ArtifactOwnership(ProjectPath(Path(value)), cls))
                 except (TypeError, ValueError):
                     paths_ok = False
+        if paths_ok:
+            actual = {
+                cls: {
+                    str(item.path.path).replace("\\", "/")
+                    for item in ownership_entries
+                    if item.ownership is cls
+                }
+                for cls in OwnershipClass
+            }
+            paths_ok = all(actual[cls] == expected[cls] for cls in OwnershipClass)
     findings.append(
         _finding(
             "ownership.paths",
@@ -297,8 +320,9 @@ def inspect(root: Path | str = ".") -> DoctorReport:
             broken_reference,
         )
     )
-    required = ("pyproject.toml", ".github/workflows/ci.yml", "docs/ARCHITECTURE.md")
-    structure_ok = all(_safe_file(project, x) for x in required) and all(
+    package = project.path.name.replace("-", "_")
+    required = profile_contract.required_paths(package) if profile_contract is not None else ()
+    structure_ok = all(_safe_file(project, str(path)) for path in required) and all(
         (project.path / x).is_dir() and not (project.path / x).is_symlink()
         for x in ("src", "tests")
     )
@@ -306,7 +330,7 @@ def inspect(root: Path | str = ".") -> DoctorReport:
         _finding(
             "repository.structure",
             structure_ok,
-            "Python repository structure is present"
+            "repository structure for the selected profile is present"
             if structure_ok
             else "required repository structure is missing or unsafe",
         )

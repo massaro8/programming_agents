@@ -8,6 +8,7 @@ from collections.abc import Sequence
 from pathlib import Path
 
 from agentready import __version__
+from agentready.core.profiles import DEFAULT_PROFILE, SUPPORTED_PROFILES
 from agentready.detach.service import DetachError, detach_project
 from agentready.doctor.inspector import format_report, inspect
 from agentready.doctor.serialization import serialize_report
@@ -27,6 +28,12 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers = parser.add_subparsers(dest="command")
     init_parser = subparsers.add_parser("init", help="create a trusted Python project")
     init_parser.add_argument("target", type=Path)
+    init_parser.add_argument(
+        "--profile",
+        choices=SUPPORTED_PROFILES,
+        default=DEFAULT_PROFILE,
+        help="project structure profile (default: minimal)",
+    )
     doctor_parser = subparsers.add_parser("doctor", help="inspect a repository")
     doctor_parser.add_argument("path", nargs="?", type=Path, default=Path("."))
     doctor_parser.add_argument("--format", choices=("human", "json"), default="human")
@@ -40,7 +47,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parser.parse_args(argv)
     if args.command == "init":
         try:
-            generate_project(args.target)
+            generate_project(args.target, profile=args.profile)
         except (GeneratorError, TypeError) as exc:
             print(f"error: {exc}", file=sys.stderr)
             return 1

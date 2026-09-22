@@ -1,0 +1,10 @@
+"""Small, framework-neutral application configuration."""
+
+from dataclasses import dataclass
+
+
+@dataclass(frozen=True, slots=True)
+class Config:
+    """Runtime settings kept explicit for future composition."""
+
+    greeting_prefix: str = "Hello"

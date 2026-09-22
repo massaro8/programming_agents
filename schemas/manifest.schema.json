@@ -6,7 +6,7 @@
   "required": ["schema", "profile", "generator", "generator_version", "ownership"],
   "properties": {
     "schema": {"type": "integer", "const": 1},
-    "profile": {"type": "string"},
+    "profile": {"type": "string", "enum": ["minimal", "application", "service"]},
     "generator": {"type": "string", "const": "agentready"},
     "generator_version": {"type": "string", "minLength": 1},
     "ownership": {

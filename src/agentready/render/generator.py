@@ -12,28 +12,10 @@ import copier
 
 from agentready import __version__
 from agentready.core.ownership import ArtifactOwnership, OwnershipClass
+from agentready.core.profiles import DEFAULT_PROFILE, get_profile
 from agentready.core.project import Project, ProjectPath
 
 _NAME_RE = re.compile(r"[a-z][a-z0-9]*(?:[-_][a-z0-9]+)*\Z")
-_OWNERSHIP: dict[OwnershipClass, tuple[str, ...]] = {
-    OwnershipClass.PROJECT_OWNED: (
-        ".github/workflows/ci.yml",
-        ".gitignore",
-        ".python-version",
-        "README.md",
-        "docs/ARCHITECTURE.md",
-        "pyproject.toml",
-        "src/{package}/__init__.py",
-        "src/{package}/main.py",
-        "tests/test_main.py",
-    ),
-    OwnershipClass.SHARED: (
-        "AGENTS.md",
-        "docs/agent/standards/testing.md",
-        "docs/agent/workflows/feature.md",
-    ),
-    OwnershipClass.GENERATED: ("CLAUDE.md", ".agentready/manifest.toml"),
-}
 
 
 class GeneratorError(ValueError):
@@ -51,15 +33,19 @@ def _validate_name(name: str) -> str:
     return package
 
 
-def _ownership_plan(package: str) -> tuple[ArtifactOwnership, ...]:
+def _ownership_plan(package: str, profile: str = DEFAULT_PROFILE) -> tuple[ArtifactOwnership, ...]:
+    try:
+        ownership_map = get_profile(profile).ownership_paths(package)
+    except ValueError as exc:
+        raise GeneratorError(str(exc)) from exc
     return tuple(
         ArtifactOwnership(ProjectPath(Path(path.format(package=package))), ownership)
-        for ownership, paths in _OWNERSHIP.items()
+        for ownership, paths in ownership_map.items()
         for path in paths
     )
 
 
-def generate_project(target: Path) -> Project:
+def generate_project(target: Path, profile: str = DEFAULT_PROFILE) -> Project:
     """Generate a named independent Python project at ``target``."""
 
     if not isinstance(target, Path):
@@ -74,7 +60,11 @@ def generate_project(target: Path) -> Project:
         raise GeneratorError("target must be a directory")
     if project.path.is_dir() and any(project.path.iterdir()):
         raise GeneratorError("target directory must be empty")
-    plan = _ownership_plan(package)
+    try:
+        selected_profile = get_profile(profile)
+    except ValueError as exc:
+        raise GeneratorError(str(exc)) from exc
+    plan = _ownership_plan(package, selected_profile.name)
     ownership = {
         "project_owned": [
             str(item.path.path).replace("\\", "/")
@@ -95,6 +85,7 @@ def generate_project(target: Path) -> Project:
     data = {
         "distribution_name": name,
         "package_name": package,
+        "profile": selected_profile.name,
         "generator_version": __version__,
         "ownership": ownership,
     }

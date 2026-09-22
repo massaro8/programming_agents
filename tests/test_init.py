@@ -23,8 +23,14 @@ PROJECT_OWNED = [
 ]
 SHARED = [
     "AGENTS.md",
+    "docs/agent/index.md",
+    "docs/agent/standards/python.md",
+    "docs/agent/standards/architecture.md",
     "docs/agent/standards/testing.md",
+    "docs/agent/standards/dependencies.md",
     "docs/agent/workflows/feature.md",
+    "docs/agent/workflows/bugfix.md",
+    "docs/agent/workflows/refactor.md",
 ]
 GENERATED = ["CLAUDE.md", ".agentready/manifest.toml"]
 EXPECTED_FILES = set(PROJECT_OWNED + SHARED + GENERATED)
@@ -42,7 +48,7 @@ def test_generate_canonical_tree_and_manifest(tmp_path: Path) -> None:
     parsed = tomllib.loads(manifest)
     assert parsed == {
         "schema": 1,
-        "profile": "python",
+        "profile": "minimal",
         "generator": "agentready",
         "generator_version": __version__,
         "ownership": {
@@ -89,12 +95,65 @@ def test_manifest_schema_matches_generated_contract() -> None:
     ownership = schema["properties"]["ownership"]
     assert ownership["required"] == ["project_owned", "shared", "generated"]
     assert set(ownership["properties"]) == {"project_owned", "shared", "generated"}
+    assert schema["properties"]["profile"]["enum"] == ["minimal", "application", "service"]
 
 
 def test_hyphen_name_maps_package(tmp_path: Path) -> None:
     target = tmp_path / "demo-agentready"
     generate_project(target)
     assert (target / "src/demo_agentready/__init__.py").exists()
+
+
+def test_invalid_profile_refuses_without_creating_target(tmp_path: Path) -> None:
+    target = tmp_path / "demo_agentready"
+    with pytest.raises(GeneratorError, match="unsupported profile"):
+        generate_project(target, profile="unknown")
+    assert not target.exists()
+
+
+@pytest.mark.parametrize("profile", ("minimal", "application", "service"))
+def test_profiles_have_exact_profile_shape(tmp_path: Path, profile: str) -> None:
+    target = tmp_path / f"demo-{profile}"
+    generate_project(target, profile=profile)
+    package = f"demo_{profile}"
+    files = {path.relative_to(target).as_posix() for path in target.rglob("*") if path.is_file()}
+    common = set(
+        [
+            *SHARED,
+            *GENERATED,
+            ".github/workflows/ci.yml",
+            ".gitignore",
+            ".python-version",
+            "README.md",
+            "docs/ARCHITECTURE.md",
+            "pyproject.toml",
+            f"src/{package}/__init__.py",
+            f"src/{package}/main.py",
+            "tests/test_main.py",
+        ]
+    )
+    expected = common
+    if profile != "minimal":
+        expected |= {
+            f"src/{package}/bootstrap.py",
+            f"src/{package}/config.py",
+            f"src/{package}/domain/__init__.py",
+            f"src/{package}/domain/errors.py",
+            f"src/{package}/application/__init__.py",
+            f"src/{package}/application/service.py",
+        }
+    if profile == "service":
+        expected |= {f"src/{package}/adapters/__init__.py", f"src/{package}/adapters/console.py"}
+    assert files == expected
+    assert tomllib.loads((target / ".agentready/manifest.toml").read_text())["profile"] == profile
+    forbidden = (
+        {"application", "domain", "adapters"}
+        if profile == "minimal"
+        else {"adapters"}
+        if profile == "application"
+        else set()
+    )
+    assert not any(path.is_dir() and path.name in forbidden for path in target.rglob("*"))
 
 
 @pytest.mark.parametrize(
@@ -162,6 +221,17 @@ def test_installed_console_init_and_nonempty_refusal(tmp_path: Path) -> None:
     )
     assert created.returncode == 0
     assert (target / "src/demo_agentready/main.py").exists()
+
+    invalid_target = tmp_path / "invalid_profile"
+    invalid = subprocess.run(
+        [executable, "init", os.fspath(invalid_target), "--profile", "unknown"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert invalid.returncode == 2
+    assert "invalid choice" in invalid.stderr
+    assert not invalid_target.exists()
 
     sentinel = target / "sentinel.txt"
     sentinel.write_text("keep")

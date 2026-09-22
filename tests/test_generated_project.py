@@ -19,21 +19,6 @@ EXPECTED_COMMANDS = [
     "uv run mypy src",
     "uv run pytest",
 ]
-OWNERSHIP = {
-    "project_owned": {
-        ".github/workflows/ci.yml",
-        ".gitignore",
-        ".python-version",
-        "README.md",
-        "docs/ARCHITECTURE.md",
-        "pyproject.toml",
-        "src/demo_agentready/__init__.py",
-        "src/demo_agentready/main.py",
-        "tests/test_main.py",
-    },
-    "shared": {"AGENTS.md", "docs/agent/standards/testing.md", "docs/agent/workflows/feature.md"},
-    "generated": {"CLAUDE.md", ".agentready/manifest.toml"},
-}
 
 
 def run(command: list[str], cwd: Path, env: dict[str, str], timeout: int = 180) -> str:
@@ -52,7 +37,8 @@ def files(root: Path) -> dict[str, bytes]:
     return {p.relative_to(root).as_posix(): p.read_bytes() for p in root.rglob("*") if p.is_file()}
 
 
-def test_qualify_independent_generated_project(tmp_path: Path) -> None:
+@pytest.mark.parametrize("profile", ("minimal", "application", "service"))
+def test_qualify_independent_generated_project(tmp_path: Path, profile: str) -> None:
     uv = shutil.which("uv")
     if uv is None:
         pytest.fail("uv is required for generated-project qualification")
@@ -78,6 +64,8 @@ def test_qualify_independent_generated_project(tmp_path: Path) -> None:
                 "agentready",
                 "init",
                 str(parent / "demo_agentready"),
+                "--profile",
+                profile,
             ],
             tmp_path,
             env,
@@ -86,10 +74,32 @@ def test_qualify_independent_generated_project(tmp_path: Path) -> None:
     first_files = files(first_project)
     assert first_files == files(second_project)
     manifest = tomllib.loads((first_project / ".agentready/manifest.toml").read_text())
-    assert manifest["schema"] == 1 and manifest["profile"] == "python"
+    assert manifest["schema"] == 1 and manifest["profile"] == profile
     assert manifest["generator"] == "agentready" and manifest["generator_version"]
     ownership = {key: set(value) for key, value in manifest["ownership"].items()}
-    assert ownership == OWNERSHIP
+    assert ownership["shared"] == {
+        "AGENTS.md",
+        "docs/agent/index.md",
+        "docs/agent/standards/python.md",
+        "docs/agent/standards/architecture.md",
+        "docs/agent/standards/testing.md",
+        "docs/agent/standards/dependencies.md",
+        "docs/agent/workflows/feature.md",
+        "docs/agent/workflows/bugfix.md",
+        "docs/agent/workflows/refactor.md",
+    }
+    assert ownership["generated"] == {"CLAUDE.md", ".agentready/manifest.toml"}
+    assert profile == "service" or not any("adapters/" in path for path in first_files)
+    if profile == "minimal":
+        assert not any(
+            "/application/" in path or "/domain/" in path or "/adapters/" in path
+            for path in first_files
+        )
+    else:
+        assert any("/application/service.py" in path for path in first_files)
+        assert any("/domain/errors.py" in path for path in first_files)
+    if profile == "service":
+        assert any("/adapters/console.py" in path for path in first_files)
     assert set().union(*ownership.values()) == set(first_files)
     assert sum(map(len, ownership.values())) == len(set().union(*ownership.values()))
     ownership_classes = {

@@ -6,6 +6,7 @@ import os
 import tomllib
 from pathlib import Path
 
+from agentready.core.profiles import get_profile
 from agentready.core.project import Project, ProjectPath
 
 
@@ -73,10 +74,14 @@ def detach_project(target: Path | str = ".") -> None:
         data = tomllib.loads(manifest.read_text(encoding="utf-8"))
     except (OSError, UnicodeError, tomllib.TOMLDecodeError) as exc:
         raise DetachError("AgentReady manifest is malformed") from exc
+    try:
+        supported_profile = get_profile(data.get("profile"))  # type: ignore[arg-type]
+    except ValueError:
+        supported_profile = None
     if (
         data.get("schema") != 1
         or data.get("generator") != "agentready"
-        or data.get("profile") != "python"
+        or supported_profile is None
         or not isinstance(data.get("generator_version"), str)
         or not data["generator_version"]
     ):

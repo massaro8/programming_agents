@@ -1,0 +1,23 @@
+# Project guidance
+
+Purpose: maintain an independent Python project using the **{{ profile }}** profile.
+
+Commands: `uv sync --all-groups`; `uv run ruff format --check .`; `uv run ruff check .`; `uv run mypy src`; `uv run pytest`.
+
+Search before reading: locate relevant files and tests first, then read the smallest useful set.
+
+{% if profile == "minimal" -%}
+Architecture invariants: keep the `src/` layout direct and do not add layers until a concrete requirement needs them. Keep dependencies minimal and do not add a runtime dependency on AgentReady.
+{% elif profile == "application" -%}
+Architecture invariants: preserve `main`/bootstrap → application → domain; domain stays independent of application code and frameworks. Keep dependencies minimal and do not add a runtime dependency on AgentReady.
+{% else -%}
+Architecture invariants: preserve entrypoint/bootstrap → application → domain; adapters depend inward and bootstrap owns composition. Keep dependencies minimal and do not add a runtime dependency on AgentReady.
+{% endif -%}
+
+Minimum coherent diff: make the smallest change that satisfies the acceptance criteria and avoid speculative directories, abstractions, or refactors.
+
+Verification: run the documented commands relevant to the change, then the full baseline before merging.
+
+Definition of done: behavior is tested, formatting/lint/types/tests pass, and the diff is focused.
+
+Start with [agent guidance index](docs/agent/index.md), then use [Python standards](docs/agent/standards/python.md), [architecture standards](docs/agent/standards/architecture.md), [testing standards](docs/agent/standards/testing.md), [dependency standards](docs/agent/standards/dependencies.md), and the [feature](docs/agent/workflows/feature.md), [bugfix](docs/agent/workflows/bugfix.md), or [refactor](docs/agent/workflows/refactor.md) workflow.

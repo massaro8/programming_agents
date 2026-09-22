@@ -1,0 +1,20 @@
+{% if profile == "minimal" -%}
+def greet(name: str) -> str:
+    return f"Hello, {name}!"
+{% elif profile == "service" -%}
+from {{ package_name }}.bootstrap import build_console
+
+
+def greet(name: str) -> str:
+    """Return the canonical greeting through the console adapter."""
+
+    return build_console().render(name)
+{% else -%}
+from {{ package_name }}.bootstrap import build_service
+
+
+def greet(name: str) -> str:
+    """Return the canonical greeting through the application service."""
+
+    return build_service().greet(name)
+{% endif -%}

@@ -70,7 +70,8 @@ def declared_dependencies(config: dict[str, object]) -> list[str]:
     return values
 
 
-def test_formal_detach_no_lock_in_qualification(tmp_path: Path) -> None:
+@pytest.mark.parametrize("profile", ("minimal", "application", "service"))
+def test_formal_detach_no_lock_in_qualification(tmp_path: Path, profile: str) -> None:
     uv = shutil.which("uv")
     if uv is None:
         pytest.fail("uv is required for formal detachment qualification")
@@ -90,7 +91,7 @@ def test_formal_detach_no_lock_in_qualification(tmp_path: Path) -> None:
     assert run([str(tool), "--version"], tmp_path, env).strip() == "agentready 0.1.0"
     project = tmp_path / "project" / "demo_agentready"
     project.parent.mkdir()
-    run([str(tool), "init", str(project)], tmp_path, env)
+    run([str(tool), "init", str(project), "--profile", profile], tmp_path, env)
     doctor = subprocess.run(
         [str(tool), "doctor", str(project), "--format", "json"],
         cwd=tmp_path,
@@ -106,6 +107,8 @@ def test_formal_detach_no_lock_in_qualification(tmp_path: Path) -> None:
     assert doctor_report["checks"] and all(
         check["status"] == "pass" for check in doctor_report["checks"]
     )
+    manifest = tomllib.loads((project / ".agentready/manifest.toml").read_text(encoding="utf-8"))
+    assert manifest["profile"] == profile
     for command in BASELINE:
         run([uv, *command[1:]], project, env)
     run([uv, "build"], project, env)

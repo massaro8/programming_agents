@@ -1,0 +1,15 @@
+"""Console adapter that depends on the inward application service."""
+
+from {{ package_name }}.application.service import GreetingService
+
+
+class ConsoleAdapter:
+    """Translate the application result for a console caller."""
+
+    def __init__(self, service: GreetingService) -> None:
+        self._service = service
+
+    def render(self, name: str) -> str:
+        """Return one rendered greeting without owning application rules."""
+
+        return self._service.greet(name)

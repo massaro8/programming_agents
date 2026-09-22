@@ -1,0 +1,32 @@
+{% if profile == "service" -%}
+"""Composition root for the service profile."""
+
+from {{ package_name }}.adapters.console import ConsoleAdapter
+from {{ package_name }}.application.service import GreetingService
+from {{ package_name }}.config import Config
+
+
+def build_service() -> GreetingService:
+    """Wire the application service from configuration."""
+
+    config = Config()
+    return GreetingService(config.greeting_prefix)
+
+
+def build_console() -> ConsoleAdapter:
+    """Wire the console adapter to the inward application service."""
+
+    return ConsoleAdapter(build_service())
+{% else -%}
+"""Composition root for the application profile."""
+
+from {{ package_name }}.application.service import GreetingService
+from {{ package_name }}.config import Config
+
+
+def build_service() -> GreetingService:
+    """Wire the application service from configuration."""
+
+    config = Config()
+    return GreetingService(config.greeting_prefix)
+{% endif -%}

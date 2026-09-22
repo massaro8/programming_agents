@@ -29,14 +29,15 @@ tests, minimal dependencies, and a focused diff.
 
 ### Setup
 
-Generate `uc01_greeting_history`, sync it, verify its baseline tests, and open it in a fresh coding-
-agent session.
+Run `agentready init practical-app --profile application`, sync it, verify its baseline tests, and
+open it in a fresh coding-agent session.
 
 ### Prompt
 
-> Add a typed in-memory greeting history feature. Keep the existing greeting behavior, expose a
-> small API for recording and listing greetings, add behavior tests, and add no unnecessary
-> dependencies. Follow the repository guidance and run its required gates.
+> Add a typed in-memory greeting history feature to the application profile. Keep
+> `greet("AgentReady") == "Hello, AgentReady!"`, expose a small API for recording and listing
+> greetings, add behavior tests, and add no unnecessary dependencies. Follow the repository
+> guidance and run its required gates.
 
 ### Procedure and evidence
 

@@ -1,0 +1,11 @@
+# Architecture
+
+This project uses a small Python package with a `src/` layout and the **{{ profile }}** profile.
+Application code is independent of the generator that created this repository.
+
+{% if profile == "minimal" %}The minimal profile keeps one direct entrypoint in `main.py` and is
+intentionally free of speculative layers.
+{% else %}The entrypoint and `bootstrap.py` compose the application service. The application layer
+depends inward on domain code; the service profile additionally exposes a small console adapter
+that depends on the application layer. The structure is framework-neutral and deliberately tiny.
+{% endif %}
