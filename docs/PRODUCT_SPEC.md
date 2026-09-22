@@ -26,7 +26,7 @@ Acceptance:
 - produces a valid Python starter repository;
 - produces compact `AGENTS.md` and selected thin agent adapters;
 - creates a repository-local feature template, deterministic generated registry, and stdlib-only
-  work-intake utility shared by every Python profile;
+  scaffolding utility shared by every Python profile; normative requirements remain human-owned;
 - creates optional `.agentready/` maintenance metadata;
 - generated project passes its documented baseline checks.
 

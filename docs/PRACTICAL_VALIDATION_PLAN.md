@@ -31,23 +31,27 @@ dependencies, and a focused diff.
 ### Setup
 
 Run `agentready init practical-app --profile application`, verify its baseline tests, and open it in
-a fresh coding-agent session. The repository starts with an empty feature registry.
+a fresh coding-agent session only after the project owner has:
+
+1. run `python scripts/feature_registry.py new "OpenRouter model catalog"`;
+2. written the detailed normative product specification in the resulting BACKLOG file;
+3. marked it `READY`, synchronized the registry, and verified `feature_registry.py check` passes.
+
+The human-authored F001 is the fixed input to the implementation session.
 
 ### Prompt
 
-> Implement this as the next project feature: fetch the public OpenRouter models catalog and save
-> the first 10 model records to a JSON file. Keep network and file-system effects at explicit
-> boundaries, preserve the existing greeting behavior, add deterministic tests that do not require
-> live network access, and add no dependency without justification.
+> Implement the next READY feature.
 
 ### Procedure and evidence
 
-- Observe whether the agent reads `AGENTS.md`, creates `F001` with the local feature registry,
-  runs `sync`, and then reads only that selected specification. The user does not manually create
-  the feature specification.
+- Observe whether the agent reads `AGENTS.md`, uses `next-ready`, and reads only the human-authored
+  F001 specification rather than creating or rewriting product requirements.
 - Record its plan, files read/changed, tests added, and verification commands.
 - Require the agent to transition `F001` through `IN_PROGRESS` to `DONE`, record the implementation
   result and verification in the spec, and run `python scripts/feature_registry.py check`.
+- Compare the normative specification before and after implementation and require it to remain
+  unchanged. Material ambiguity must produce BLOCKED plus an exact question, not an assumption.
 - Require Ruff format/check, mypy, and pytest to pass.
 - Review for unnecessary abstractions, dependency additions, unrelated edits, and missing tests.
 - Confirm no `F001` is created in the AgentReady product repository and no issue-tracker, backend,

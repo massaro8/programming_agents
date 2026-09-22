@@ -22,4 +22,4 @@ Definition of done: behavior is tested, formatting/lint/types/tests pass, and th
 
 Start with [agent guidance index](docs/agent/index.md), then use [Python standards](docs/agent/standards/python.md), [architecture standards](docs/agent/standards/architecture.md), [testing standards](docs/agent/standards/testing.md), [dependency standards](docs/agent/standards/dependencies.md), and the [feature](docs/agent/workflows/feature.md), [bugfix](docs/agent/workflows/bugfix.md), or [refactor](docs/agent/workflows/refactor.md) workflow.
 
-Feature routing: use [docs/features/index.md](docs/features/index.md) as the generated registry and [the feature workflow](docs/agent/workflows/feature.md) for one feature at a time; individual `docs/features/F*.md` files are the requirements source of truth.
+Feature routing: project-owned normative requirements live in `docs/features/F*.md`. Unless explicitly asked to help author a specification, implement only a requested or next `READY` feature, never rewrite its requirements to fit the implementation, and follow [the feature workflow](docs/agent/workflows/feature.md) to update its implementation record and generated registry.

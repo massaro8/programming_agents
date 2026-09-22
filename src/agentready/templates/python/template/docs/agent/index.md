@@ -18,10 +18,18 @@ Feature registry and specifications:
 - [Feature registry](../features/index.md) (generated; do not edit manually)
 - [Feature template](../features/template.md)
 
-Minimal user prompts are enough because the workflow lives here:
+Normative product requirements are project-owned. Implementing agents must not rewrite them merely
+to fit an implementation. Requirement authoring and implementation are separate routes:
 
-- New work: `Implement this as the next project feature: <requirement>`
-- Existing work: `Implement the next ready feature.`
+- Author a specification only when explicitly requested: run `python scripts/feature_registry.py
+  new "TITLE"` or use the template, help structure the human's requirements, and leave the feature
+  `BACKLOG` unless the project owner explicitly approves `READY`.
+- Implement approved work: consult the registry, select the requested or next `READY` feature, read
+  only that specification, and follow the feature workflow.
 
-For new work, the agent creates and maintains the specification; the user does not need to edit the
-registry. For existing work, use `next-ready` and read only the one returned specification.
+Minimal user interactions:
+
+- `Create a feature scaffold titled "<title>".`
+- `Implement the next READY feature.`
+
+The human may edit a specification directly. The generated index is never edited manually.

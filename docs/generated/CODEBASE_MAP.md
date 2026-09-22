@@ -1,6 +1,6 @@
 # Codebase Map
 
-Structure fingerprint: `6de2daae9311`
+Structure fingerprint: `ff5bcbcce1a9`
 
 Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 
@@ -79,6 +79,7 @@ Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 - `docs/audits/DOC_001_AUDIT.md`
 - `docs/audits/DOC_002_AUDIT.md`
 - `docs/audits/FLOW_001_AUDIT.md`
+- `docs/audits/FLOW_002_AUDIT.md`
 - `docs/audits/INIT_001_AUDIT.md`
 - `docs/audits/INIT_002_AUDIT.md`
 - `docs/audits/PHASE0_BASELINE_AUDIT.md`

@@ -1,31 +1,38 @@
 # Feature workflow
 
-1. Capture or select exactly one feature.
-   - For a direct request, run `python scripts/feature_registry.py new "TITLE"`, faithfully fill its
-     specification from the request, then mark it `READY` and run `sync` when requirements are
-     sufficient. Do not invent major requirements. If an essential decision is missing, ask the
-     user or mark it `BLOCKED`, record the decision needed, sync, and stop.
-   - For existing work, run `python scripts/feature_registry.py next-ready`, select only the returned
-     ID, and stop on `NO_READY_FEATURE`.
-2. Understand the selected specification and acceptance criteria. Read only that feature, not the
-   whole registry.
-3. Localize the current implementation and relevant tests by searching before broad reading.
-4. Assess callers, data flow, dependencies, and documentation impact.
+Normative product requirements are human/project-owner controlled. Never modify them solely to make
+a failing or incomplete implementation appear compliant.
+
+1. Select exactly one requested `READY` feature, or run `python scripts/feature_registry.py
+   next-ready` and stop on `NO_READY_FEATURE`. Do not implement a `BACKLOG` item.
+2. Read the selected specification's normative requirements and acceptance criteria. Do not read
+   every feature specification.
+3. Understand the requested behavior without changing product intent. If ambiguity materially
+   affects behavior, mark the feature `BLOCKED`, record the exact question in the agent-maintained
+   implementation record, run `sync`, and stop.
+4. Localize the current implementation and relevant tests by searching before broad reading.
+5. Assess callers, data flow, dependencies, and documentation impact.
 {% if profile == "minimal" -%}
-5. Identify the smallest owning module; introduce a new boundary only when the feature needs it.
+6. Identify the smallest owning module; introduce a new boundary only when the feature needs it.
 {% else -%}
-5. Identify the owning layer or domain before editing; preserve the **{{ profile }}** dependency
+6. Identify the owning layer or domain before editing; preserve the **{{ profile }}** dependency
    direction.
 {% endif -%}
-6. Define verification before implementation.
-7. Mark the feature `IN_PROGRESS` and run `sync` before editing implementation code.
-8. Implement the minimum coherent change without speculative layers or dependencies.
-9. Run the targeted behavior test, then the required repository gates.
-10. Review the final diff for scope, ownership, and accidental changes.
-11. Update the implementation record with result, files, dependencies, verification, important
-    decisions, deviations, and follow-up candidates. Do not implement follow-ups opportunistically.
-12. Mark the feature `DONE` only after its acceptance criteria and gates pass, run `sync`, run
+7. Define verification before implementation.
+8. Change only `Status: READY` to `Status: IN_PROGRESS`, then run `sync`.
+9. Implement the minimum coherent change without speculative layers or dependencies.
+10. Run the targeted behavior test, then the required repository gates.
+11. Review the final diff against the unchanged normative requirements.
+12. Update only the agent-maintained implementation record with result, files, dependencies,
+    verification, design decisions, deviations/blockers, and follow-up candidates. Do not implement
+    follow-ups opportunistically.
+13. Change `IN_PROGRESS` to `DONE` only after all acceptance criteria and gates pass, run `sync`, run
     `check`, and stop. Do not automatically begin another feature.
 
-At any step, if work becomes externally blocked, mark the feature `BLOCKED`, record the exact
-blocker and smallest next action, run `sync`, and stop.
+The implementing agent may transition only `READY → IN_PROGRESS`, `IN_PROGRESS → DONE`, or
+`IN_PROGRESS → BLOCKED`. If a current requirement cannot be met, record why, mark `BLOCKED`, sync,
+and stop; do not rewrite the requirement.
+
+Specification authoring is a separate task. Only when explicitly asked may an agent run `new` or
+help structure product-owner text. A scaffold remains `BACKLOG` unless the owner explicitly approves
+it as `READY`; the authoring task does not proceed into implementation automatically.

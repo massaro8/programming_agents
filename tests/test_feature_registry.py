@@ -46,10 +46,31 @@ def test_empty_registry_check_next_id_and_next_ready(tmp_path: Path) -> None:
 def test_new_lifecycle_is_deterministic_and_one_feature_at_a_time(tmp_path: Path) -> None:
     root = _project(tmp_path)
 
-    created = _run(root, "new", "Greeting history", "--status", "READY")
+    created = _run(root, "new", "Greeting history")
     assert created.returncode == 0 and created.stdout.strip() == "F001"
+    spec = root / "docs/features/F001-greeting-history.md"
+    scaffold = spec.read_text(encoding="utf-8")
+    template = (root / "docs/features/template.md").read_text(encoding="utf-8")
+    assert scaffold == template.replace("# FNNN — Feature title", "# F001 — Greeting history", 1)
+    assert "Status: BACKLOG" in scaffold
+    assert _run(root, "next-ready").stdout.strip() == "NO_READY_FEATURE"
+
+    human_spec = (
+        scaffold.replace("Status: BACKLOG", "Status: READY", 1)
+        .replace("What outcome should this feature provide?", "Retain generated greetings.")
+        .replace("- Describe the required behavior.", "- Record and list generated greetings.")
+        .replace("- [ ] Define observable completion criteria.", "- [ ] History preserves order.")
+    )
+    spec.write_text(human_spec, encoding="utf-8")
+    assert _run(root, "sync").returncode == 0
+    assert _run(root, "next-ready").stdout.strip() == "F001"
+    normative_before = human_spec.split("## Product specification", 1)[1].split(
+        "## Implementation record", 1
+    )[0]
+
     second = _run(root, "new", "Another feature")
     assert second.returncode == 0 and second.stdout.strip() == "F002"
+    assert "Status: BACKLOG" in (root / "docs/features/F002-another-feature.md").read_text()
     assert _run(root, "next-id").stdout.strip() == "F003"
     assert _run(root, "next-ready").stdout.strip() == "F001"
     index = root / "docs/features/index.md"
@@ -57,20 +78,31 @@ def test_new_lifecycle_is_deterministic_and_one_feature_at_a_time(tmp_path: Path
     assert _run(root, "sync").returncode == 0
     assert index.read_bytes() == before_sync
 
-    spec = root / "docs/features/F001-greeting-history.md"
-    text = spec.read_text(encoding="utf-8")
-    spec.write_text(text.replace("Status: READY", "Status: IN_PROGRESS"), encoding="utf-8")
+    spec.write_text(human_spec.replace("Status: READY", "Status: IN_PROGRESS", 1), encoding="utf-8")
     assert _run(root, "sync").returncode == 0
     spec.write_text(
         spec.read_text(encoding="utf-8")
-        .replace("Status: IN_PROGRESS", "Status: DONE")
-        .replace("- Result: NOT_STARTED", "- Result: COMPLETED")
-        .replace("- Verification result: Not run", "- Verification result: pytest passed"),
+        .replace("Status: IN_PROGRESS", "Status: DONE", 1)
+        .replace("- Implementation result: NOT_STARTED", "- Implementation result: COMPLETED")
+        .replace("- Verification performed: Not run", "- Verification performed: pytest passed"),
         encoding="utf-8",
     )
     assert _run(root, "sync").returncode == 0
     assert _run(root, "next-ready").stdout.strip() == "NO_READY_FEATURE"
     assert _run(root, "check").returncode == 0
+    normative_after = (
+        spec.read_text(encoding="utf-8")
+        .split("## Product specification", 1)[1]
+        .split("## Implementation record", 1)[0]
+    )
+    assert normative_after == normative_before
+
+
+def test_new_cannot_automatically_mark_ready(tmp_path: Path) -> None:
+    root = _project(tmp_path)
+    result = _run(root, "new", "Unapproved feature", "--status", "READY")
+    assert result.returncode != 0
+    assert not tuple((root / "docs/features").glob("F*.md"))
 
 
 def test_next_id_is_max_plus_one_and_does_not_fill_gaps(tmp_path: Path) -> None:
@@ -163,3 +195,31 @@ def test_new_rejects_multiline_title(tmp_path: Path) -> None:
     result = _run(root, "new", "Broken\ntitle")
     assert result.returncode != 0
     assert not tuple((root / "docs/features").glob("F*.md"))
+
+
+@pytest.mark.parametrize("profile", ("minimal", "application", "service"))
+def test_all_profiles_receive_human_owned_feature_governance(tmp_path: Path, profile: str) -> None:
+    root = tmp_path / f"demo_{profile}"
+    generate_project(root, profile=profile)
+
+    template = (root / "docs/features/template.md").read_text(encoding="utf-8")
+    workflow = (root / "docs/agent/workflows/feature.md").read_text(encoding="utf-8")
+    agents = (root / "AGENTS.md").read_text(encoding="utf-8")
+    required_specification_headings = (
+        "## Product specification (human-owned, normative)",
+        "### Objective",
+        "### Context",
+        "### Functional requirements",
+        "### Inputs and outputs",
+        "### Behavior",
+        "### Constraints",
+        "### Non-goals",
+        "### Acceptance criteria",
+        "### Manual validation (if relevant)",
+        "## Implementation record (agent-maintained)",
+    )
+    assert all(heading in template for heading in required_specification_headings)
+    assert "must not be modified by an implementing agent" in template
+    assert "Never modify them solely" in workflow
+    assert "Do not implement a `BACKLOG` item" in workflow
+    assert "project-owned normative requirements" in agents

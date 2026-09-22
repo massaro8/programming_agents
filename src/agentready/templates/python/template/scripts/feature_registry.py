@@ -178,28 +178,25 @@ def next_ready(root: Path) -> str:
     return "NO_READY_FEATURE"
 
 
-def new_feature(root: Path, title: str, status: str) -> str:
+def new_feature(root: Path, title: str) -> str:
     if not title.strip() or "\n" in title or "\r" in title:
-        raise RegistryError("title must not be empty")
-    if status not in ("BACKLOG", "READY"):
-        raise RegistryError("new status must be BACKLOG or READY")
+        raise RegistryError("title must be a non-empty single line")
     feature_id = next_id(root)
     slug = title_slug(title.strip())
     path = root / "docs" / "features" / f"{feature_id}-{slug}.md"
     if path.exists():
         raise RegistryError(f"refusing to overwrite existing feature: {path.name}")
-    content = (
-        f"# {feature_id} — {title.strip()}\n\nStatus: {status}\n\n"
-        "## Objective\n\nDescribe the outcome this feature should provide.\n\n"
-        "## Requirements\n\n- Record the requirements here.\n\n"
-        "## Scope and non-goals\n\n- Define scope and explicit non-goals.\n\n"
-        "## Acceptance criteria\n\n- [ ] Record observable acceptance criteria.\n\n"
-        "## Verification\n\n- Record focused verification checks.\n\n"
-        "## Implementation record\n\n- Result: NOT_STARTED\n- Files changed: None\n"
-        "- Dependencies added: None\n- Verification result: Not run\n"
-        "- Important design decision: None\n- Deviations: None\n- Follow-up candidates: None\n"
-        "- Blocker and next action: None\n"
-    )
+    template = root / "docs" / "features" / "template.md"
+    if template.is_symlink() or not template.is_file():
+        raise RegistryError("feature template is missing or unsafe")
+    try:
+        scaffold = template.read_text(encoding="utf-8")
+    except (OSError, UnicodeError) as exc:
+        raise RegistryError(f"cannot read feature template: {exc}") from exc
+    placeholder = "# FNNN — Feature title"
+    if not scaffold.startswith(f"{placeholder}\n\nStatus: BACKLOG\n"):
+        raise RegistryError("feature template has an unsupported metadata header")
+    content = scaffold.replace(placeholder, f"# {feature_id} — {title.strip()}", 1)
     try:
         with path.open("x", encoding="utf-8", newline="\n") as feature_file:
             feature_file.write(content)
@@ -213,7 +210,6 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("command", choices=("sync", "check", "next-id", "next-ready", "new"))
     parser.add_argument("title", nargs="?")
-    parser.add_argument("--status", choices=("BACKLOG", "READY"), default="BACKLOG")
     args = parser.parse_args(argv)
     root = Path(__file__).resolve().parent.parent
     try:
@@ -228,7 +224,7 @@ def main(argv: list[str] | None = None) -> int:
         elif args.command == "new":
             if args.title is None:
                 raise RegistryError("new requires TITLE")
-            print(new_feature(root, args.title, args.status))
+            print(new_feature(root, args.title))
     except RegistryError as exc:
         print(f"feature registry: {exc}", file=sys.stderr)
         return 1
