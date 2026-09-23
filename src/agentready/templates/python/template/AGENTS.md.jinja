@@ -20,6 +20,6 @@ Verification: run the documented commands relevant to the change, then the full 
 
 Definition of done: behavior is tested, formatting/lint/types/tests pass, and the diff is focused.
 
-Start with [agent guidance index](docs/agent/index.md), then use [Python standards](docs/agent/standards/python.md), [architecture standards](docs/agent/standards/architecture.md), [testing standards](docs/agent/standards/testing.md), [dependency standards](docs/agent/standards/dependencies.md), and the [feature](docs/agent/workflows/feature.md), [bugfix](docs/agent/workflows/bugfix.md), or [refactor](docs/agent/workflows/refactor.md) workflow.
+Start with [agent guidance index](docs/agent/index.md). Project work is tracked under `docs/work/`.
 
-Feature routing: project-owned normative requirements live in `docs/features/F*.md`. Unless explicitly asked to help author a specification, implement only a requested or next `READY` feature, never rewrite its requirements to fit the implementation, and follow [the feature workflow](docs/agent/workflows/feature.md) to update its implementation record and generated registry.
+For implementation work, select one READY item, use its Type to choose the workflow in `docs/agent/index.md`, read its normative specification and only relevant standards, preserve requirements, update the implementation record and documentation impact, then sync the registry and changelog. If blocked, record why, mark BLOCKED, and stop.

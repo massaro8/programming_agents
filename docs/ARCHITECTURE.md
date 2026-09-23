@@ -65,11 +65,16 @@ core
 
 Generated repository files belong to one of three classes:
 
-1. **PROJECT-OWNED** - source, tests, app config, architecture docs, ADRs; AgentReady must not silently
-   overwrite them after bootstrap.
-2. **SHARED-GUIDANCE** - generic workflows/standards; updates are explicit proposals/merges.
-3. **GENERATED-ADAPTER** - thin agent-specific views that can be regenerated deterministically from the
-   canonical guidance.
+1. **PROJECT-OWNED** - source, tests, app config, architecture docs, completed ADRs, and human-owned
+   work specifications; AgentReady must not silently overwrite them after bootstrap.
+2. **SHARED** - generic workflows, standards, work templates, the local registry utility, and ADR
+   template; updates are explicit proposals/merges.
+3. **GENERATED** - thin agent-specific views and deterministic work/changelog indexes. Generated
+   does not mean delete-on-detach.
+
+The local `docs/work/Wxxx-*.md` item is the source of truth for its specification and implementation
+record. `scripts/work_registry.py` produces `docs/work/index.md` and `docs/changelog/index.md` without
+AgentReady at runtime. Doctor independently validates those artifacts without executing project code.
 
 ## Canonical instructions
 

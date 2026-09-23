@@ -20,41 +20,43 @@ For every use case:
 Stop a run if it requires secrets, a destructive action outside its temporary repository, a
 capability deferred beyond V0.1, or an unbounded task expansion.
 
-## UC-01 — Greenfield feature
+## UC-01 — Greenfield work item
 
 ### Objective
 
-Evaluate whether generated guidance turns a plain OpenRouter requirement into a persistent feature
-specification, then steers a coding agent toward explicit boundaries, deterministic tests, justified
-dependencies, and a focused diff.
+Evaluate whether generated guidance preserves a human-authored feature specification and routes its
+implementation through the unified work lifecycle.
 
 ### Setup
 
 Run `agentready init practical-app --profile application`, verify its baseline tests, and open it in
 a fresh coding-agent session only after the project owner has:
 
-1. run `python scripts/feature_registry.py new "OpenRouter model catalog"`;
-2. written the detailed normative product specification in the resulting BACKLOG file;
-3. marked it `READY`, synchronized the registry, and verified `feature_registry.py check` passes.
+1. run `python scripts/work_registry.py new --type FEATURE "OpenRouter model catalog"`;
+2. written the detailed normative product specification in the resulting W001 BACKLOG file;
+3. marked it `READY`, synchronized the registry, and verified `work_registry.py check` passes.
 
-The human-authored F001 is the fixed input to the implementation session.
+The human-authored W001 is the fixed input to the implementation session.
 
 ### Prompt
 
-> Implement the next READY feature.
+> Implement the next READY work item.
 
 ### Procedure and evidence
 
-- Observe whether the agent reads `AGENTS.md`, uses `next-ready`, and reads only the human-authored
-  F001 specification rather than creating or rewriting product requirements.
+- Observe whether the agent reads `AGENTS.md`, routes by Type, and reads only the human-authored
+  W001 specification rather than creating or rewriting product requirements.
 - Record its plan, files read/changed, tests added, and verification commands.
-- Require the agent to transition `F001` through `IN_PROGRESS` to `DONE`, record the implementation
-  result and verification in the spec, and run `python scripts/feature_registry.py check`.
-- Compare the normative specification before and after implementation and require it to remain
+- Require the agent to transition `W001` through `IN_PROGRESS` to `DONE`, record implementation,
+  verification, documentation impact, and changelog fields, then run `python scripts/work_registry.py check`.
+- Confirm the work/changelog indexes update and compare the normative specification before and after
+  implementation, requiring it to remain
   unchanged. Material ambiguity must produce BLOCKED plus an exact question, not an assumption.
+- Require `agentready doctor` to be healthy before detach, and confirm `work_registry.py` and the
+  changelog continue to work after detaching a copy of the completed project.
 - Require Ruff format/check, mypy, and pytest to pass.
 - Review for unnecessary abstractions, dependency additions, unrelated edits, and missing tests.
-- Confirm no `F001` is created in the AgentReady product repository and no issue-tracker, backend,
+- Confirm no `W001` is created in the AgentReady product repository and no issue-tracker, backend,
   telemetry, or unrelated project-management machinery is introduced.
 
 Success means the feature and behavior tests pass on the first accepted implementation or after a

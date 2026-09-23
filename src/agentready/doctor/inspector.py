@@ -11,7 +11,7 @@ from pathlib import Path
 from agentready.core.ownership import ArtifactOwnership, OwnershipClass
 from agentready.core.profiles import get_profile
 from agentready.core.project import Project, ProjectPath
-from agentready.doctor.features import validate as validate_features
+from agentready.doctor.work import validate as validate_work
 
 CHECKS = (
     "project.root",
@@ -24,7 +24,7 @@ CHECKS = (
     "guidance.references",
     "repository.structure",
     "repository.independence",
-    "features.registry",
+    "work.registry",
     "detach.ready",
 )
 
@@ -358,8 +358,8 @@ def inspect(root: Path | str = ".") -> DoctorReport:
             py_pp,
         )
     )
-    features_ok, features_message, features_path = validate_features(project)
-    findings.append(_finding("features.registry", features_ok, features_message, features_path))
+    work_ok, work_message, work_path = validate_work(project)
+    findings.append(_finding("work.registry", work_ok, work_message, work_path))
     prerequisites = all(f.status is FindingStatus.PASS for f in findings[1:])
     findings.append(
         _finding(
@@ -381,7 +381,7 @@ def format_report(report: DoctorReport) -> str:
         "ownership": "Ownership",
         "guidance": "Agent guidance",
         "repository": "Repository",
-        "features": "Features",
+        "work": "Work registry",
         "detach": "Detach readiness",
     }
     current = ""

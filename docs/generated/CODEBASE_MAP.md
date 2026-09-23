@@ -1,6 +1,6 @@
 # Codebase Map
 
-Structure fingerprint: `ff5bcbcce1a9`
+Structure fingerprint: `b8c217788b75`
 
 Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 
@@ -80,6 +80,7 @@ Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 - `docs/audits/DOC_002_AUDIT.md`
 - `docs/audits/FLOW_001_AUDIT.md`
 - `docs/audits/FLOW_002_AUDIT.md`
+- `docs/audits/FLOW_003_AUDIT.md`
 - `docs/audits/INIT_001_AUDIT.md`
 - `docs/audits/INIT_002_AUDIT.md`
 - `docs/audits/PHASE0_BASELINE_AUDIT.md`
@@ -87,6 +88,7 @@ Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 - `docs/audits/REL_001_AUDIT.md`
 - `docs/features/template.md`
 - `docs/generated/CODEBASE_MAP.md`
+- `docs/work/templates/feature.md`
 
 ### `methodology`
 - `methodology/core/context-policy.md`
@@ -123,6 +125,7 @@ Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 - `src/agentready/doctor/features.py`
 - `src/agentready/doctor/inspector.py`
 - `src/agentready/doctor/serialization.py`
+- `src/agentready/doctor/work.py`
 - `src/agentready/render/__init__.py`
 - `src/agentready/render/generator.py`
 - `src/agentready/templates/__init__.py`
@@ -136,18 +139,34 @@ Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 - `src/agentready/templates/python/template/CLAUDE.md`
 - `src/agentready/templates/python/template/README.md.jinja`
 - `src/agentready/templates/python/template/docs/ARCHITECTURE.md.jinja`
+- `src/agentready/templates/python/template/docs/adr/0000-template.md`
 - `src/agentready/templates/python/template/docs/agent/index.md`
 - `src/agentready/templates/python/template/docs/agent/standards/architecture.md.jinja`
 - `src/agentready/templates/python/template/docs/agent/standards/dependencies.md`
+- `src/agentready/templates/python/template/docs/agent/standards/documentation.md`
 - `src/agentready/templates/python/template/docs/agent/standards/python.md`
+- `src/agentready/templates/python/template/docs/agent/standards/security.md`
 - `src/agentready/templates/python/template/docs/agent/standards/testing.md`
 - `src/agentready/templates/python/template/docs/agent/workflows/bugfix.md`
+- `src/agentready/templates/python/template/docs/agent/workflows/documentation.md`
+- `src/agentready/templates/python/template/docs/agent/workflows/feature.md`
 - `src/agentready/templates/python/template/docs/agent/workflows/feature.md.jinja`
+- `src/agentready/templates/python/template/docs/agent/workflows/maintenance.md`
 - `src/agentready/templates/python/template/docs/agent/workflows/refactor.md`
+- `src/agentready/templates/python/template/docs/agent/workflows/security.md`
+- `src/agentready/templates/python/template/docs/changelog/index.md`
 - `src/agentready/templates/python/template/docs/features/index.md`
 - `src/agentready/templates/python/template/docs/features/template.md`
+- `src/agentready/templates/python/template/docs/work/index.md`
+- `src/agentready/templates/python/template/docs/work/templates/bugfix.md`
+- `src/agentready/templates/python/template/docs/work/templates/documentation.md`
+- `src/agentready/templates/python/template/docs/work/templates/feature.md`
+- `src/agentready/templates/python/template/docs/work/templates/maintenance.md`
+- `src/agentready/templates/python/template/docs/work/templates/refactor.md`
+- `src/agentready/templates/python/template/docs/work/templates/security.md`
 - `src/agentready/templates/python/template/pyproject.toml.jinja`
 - `src/agentready/templates/python/template/scripts/feature_registry.py`
+- `src/agentready/templates/python/template/scripts/work_registry.py`
 - `src/agentready/templates/python/template/src/{{ package_name }}/__init__.py.jinja`
 - `src/agentready/templates/python/template/src/{{ package_name }}/adapters/__init__.py.jinja`
 - `src/agentready/templates/python/template/src/{{ package_name }}/adapters/console.py.jinja`
@@ -165,12 +184,12 @@ Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 - `tests/test_detached_project.py`
 - `tests/test_doctor.py`
 - `tests/test_doctor_json.py`
-- `tests/test_feature_registry.py`
 - `tests/test_generated_project.py`
 - `tests/test_init.py`
 - `tests/test_ownership.py`
 - `tests/test_project.py`
 - `tests/test_smoke.py`
+- `tests/test_work_registry.py`
 
 ### `uv.lock`
 - `uv.lock`

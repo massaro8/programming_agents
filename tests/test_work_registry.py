@@ -11,15 +11,15 @@ from agentready.doctor.inspector import FindingStatus, inspect
 from agentready.render.generator import generate_project
 
 
-def _project(tmp_path: Path) -> Path:
-    root = tmp_path / "demo_agentready"
+def project(tmp_path: Path) -> Path:
+    root = tmp_path / "sample"
     generate_project(root)
     return root
 
 
-def _run(root: Path, *args: str) -> subprocess.CompletedProcess[str]:
+def run(root: Path, *args: str) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
-        [sys.executable, str(root / "scripts/feature_registry.py"), *args],
+        [sys.executable, str(root / "scripts/work_registry.py"), *args],
         cwd=root,
         capture_output=True,
         text=True,
@@ -27,199 +27,170 @@ def _run(root: Path, *args: str) -> subprocess.CompletedProcess[str]:
     )
 
 
-def test_empty_registry_check_next_id_and_next_ready(tmp_path: Path) -> None:
-    root = _project(tmp_path)
-
-    assert _run(root, "check").returncode == 0
-    index = root / "docs/features/index.md"
-    before = index.read_bytes()
-    assert _run(root, "sync").returncode == 0
-    assert index.read_bytes() == before
-    assert _run(root, "next-id").stdout.strip() == "F001"
-    ready = _run(root, "next-ready")
-    assert ready.returncode == 0 and ready.stdout.strip() == "NO_READY_FEATURE"
-    assert (root / "docs/features/index.md").read_text() == (
-        "# Feature Registry\n\n> Generated file. Do not edit manually.\n\nNo features registered.\n"
-    )
-
-
-def test_new_lifecycle_is_deterministic_and_one_feature_at_a_time(tmp_path: Path) -> None:
-    root = _project(tmp_path)
-
-    created = _run(root, "new", "Greeting history")
-    assert created.returncode == 0 and created.stdout.strip() == "F001"
-    spec = root / "docs/features/F001-greeting-history.md"
-    scaffold = spec.read_text(encoding="utf-8")
-    template = (root / "docs/features/template.md").read_text(encoding="utf-8")
-    assert scaffold == template.replace("# FNNN — Feature title", "# F001 — Greeting history", 1)
-    assert "Status: BACKLOG" in scaffold
-    assert _run(root, "next-ready").stdout.strip() == "NO_READY_FEATURE"
-
-    human_spec = (
-        scaffold.replace("Status: BACKLOG", "Status: READY", 1)
-        .replace("What outcome should this feature provide?", "Retain generated greetings.")
-        .replace("- Describe the required behavior.", "- Record and list generated greetings.")
-        .replace("- [ ] Define observable completion criteria.", "- [ ] History preserves order.")
-    )
-    spec.write_text(human_spec, encoding="utf-8")
-    assert _run(root, "sync").returncode == 0
-    assert _run(root, "next-ready").stdout.strip() == "F001"
-    normative_before = human_spec.split("## Product specification", 1)[1].split(
-        "## Implementation record", 1
-    )[0]
-
-    second = _run(root, "new", "Another feature")
-    assert second.returncode == 0 and second.stdout.strip() == "F002"
-    assert "Status: BACKLOG" in (root / "docs/features/F002-another-feature.md").read_text()
-    assert _run(root, "next-id").stdout.strip() == "F003"
-    assert _run(root, "next-ready").stdout.strip() == "F001"
-    index = root / "docs/features/index.md"
-    before_sync = index.read_bytes()
-    assert _run(root, "sync").returncode == 0
-    assert index.read_bytes() == before_sync
-
-    spec.write_text(human_spec.replace("Status: READY", "Status: IN_PROGRESS", 1), encoding="utf-8")
-    assert _run(root, "sync").returncode == 0
-    spec.write_text(
-        spec.read_text(encoding="utf-8")
-        .replace("Status: IN_PROGRESS", "Status: DONE", 1)
-        .replace("- Implementation result: NOT_STARTED", "- Implementation result: COMPLETED")
-        .replace("- Verification performed: Not run", "- Verification performed: pytest passed"),
-        encoding="utf-8",
-    )
-    assert _run(root, "sync").returncode == 0
-    assert _run(root, "next-ready").stdout.strip() == "NO_READY_FEATURE"
-    assert _run(root, "check").returncode == 0
-    normative_after = (
-        spec.read_text(encoding="utf-8")
-        .split("## Product specification", 1)[1]
-        .split("## Implementation record", 1)[0]
-    )
-    assert normative_after == normative_before
-
-
-def test_new_cannot_automatically_mark_ready(tmp_path: Path) -> None:
-    root = _project(tmp_path)
-    result = _run(root, "new", "Unapproved feature", "--status", "READY")
-    assert result.returncode != 0
-    assert not tuple((root / "docs/features").glob("F*.md"))
-
-
-def test_next_id_is_max_plus_one_and_does_not_fill_gaps(tmp_path: Path) -> None:
-    root = _project(tmp_path)
-    assert _run(root, "new", "First").returncode == 0
-    (root / "docs/features/F003-third.md").write_text(
-        "# F003 — Third\n\nStatus: BACKLOG\n", encoding="utf-8"
-    )
-    assert _run(root, "sync").returncode == 0
-    assert _run(root, "next-id").stdout.strip() == "F004"
-
-
-def test_next_ready_selects_first_ready_by_numeric_id(tmp_path: Path) -> None:
-    root = _project(tmp_path)
-    features = root / "docs/features"
-    cases = (
-        ("F001-done.md", "# F001 — Done\n\nStatus: DONE\n"),
-        ("F002-backlog.md", "# F002 — Backlog\n\nStatus: BACKLOG\n"),
-        ("F003-ready-three.md", "# F003 — Ready Three\n\nStatus: READY\n"),
-        ("F004-ready-four.md", "# F004 — Ready Four\n\nStatus: READY\n"),
-    )
-    for filename, content in cases:
-        (features / filename).write_text(content, encoding="utf-8")
-    assert _run(root, "sync").returncode == 0
-    assert _run(root, "next-ready").stdout.strip() == "F003"
-
-
-def test_duplicate_ids_fail_check(tmp_path: Path) -> None:
-    root = _project(tmp_path)
-    features = root / "docs/features"
-    (features / "F001-first.md").write_text("# F001 — First\n\nStatus: BACKLOG\n", encoding="utf-8")
-    (features / "F001-second.md").write_text(
-        "# F001 — Second\n\nStatus: BACKLOG\n", encoding="utf-8"
-    )
-    result = _run(root, "check")
-    assert result.returncode != 0 and "duplicate feature ID" in result.stderr
-    finding = next(item for item in inspect(root).findings if item.check_id == "features.registry")
-    assert finding.status is FindingStatus.FAIL
+def test_empty_registry_and_mixed_work_lifecycle(tmp_path: Path) -> None:
+    root = project(tmp_path)
+    assert run(root, "check").returncode == 0
+    assert run(root, "next-id").stdout.strip() == "W001"
+    assert run(root, "next-ready").stdout.strip() == "NO_READY_WORK"
+    assert run(root, "new", "--type", "FEATURE", "One capability").stdout.strip() == "W001"
+    assert run(root, "new", "--type", "BUGFIX", "Fix a defect").stdout.strip() == "W002"
+    assert (root / "docs/work/W001-one-capability.md").is_file()
+    assert "Status: BACKLOG" in (root / "docs/work/W002-fix-a-defect.md").read_text()
+    assert run(root, "list").stdout.splitlines() == [
+        "W001 [FEATURE] BACKLOG One capability",
+        "W002 [BUGFIX] BACKLOG Fix a defect",
+    ]
+    assert run(root, "sync").returncode == 0
+    assert run(root, "check").returncode == 0
+    assert "No completed work items." in (root / "docs/changelog/index.md").read_text()
 
 
 @pytest.mark.parametrize(
-    "filename,content",
-    [
-        ("F01-title.md", "# F01 — Title\n\nStatus: BACKLOG\n"),
-        ("F001-title.md", "# F001 — Title\n"),
-        ("F001-title.md", "# F001 — Title\n\nStatus: UNKNOWN\n"),
-        ("F001-title.md", "# F002 — Title\n\nStatus: BACKLOG\n"),
-        ("F001-wrong-slug.md", "# F001 — Title\n\nStatus: BACKLOG\n"),
-        ("notes.md", "# Notes\n\nNot a feature\n"),
-    ],
+    "kind", ("FEATURE", "BUGFIX", "REFACTOR", "MAINTENANCE", "DOCS", "SECURITY")
 )
-def test_invalid_specs_fail_check_and_doctor(tmp_path: Path, filename: str, content: str) -> None:
-    root = _project(tmp_path)
-    (root / "docs/features" / filename).write_text(content, encoding="utf-8")
+def test_all_types_have_templates(tmp_path: Path, kind: str) -> None:
+    root = project(tmp_path)
+    result = run(root, "new", "--type", kind, "A task")
+    assert result.returncode == 0
+    assert f"Type: {kind}" in (root / "docs/work/W001-a-task.md").read_text()
 
-    result = _run(root, "check")
-    assert result.returncode != 0 and result.stderr.startswith("feature registry:")
-    report = inspect(root)
-    finding = next(item for item in report.findings if item.check_id == "features.registry")
+
+def test_invalid_type_and_index_drift_report(tmp_path: Path) -> None:
+    root = project(tmp_path)
+    assert run(root, "new", "--type", "NOPE", "Invalid").returncode != 0
+    index = root / "docs/work/index.md"
+    index.write_text(index.read_text() + "drift\n")
+    assert run(root, "check").returncode != 0
+    finding = next(f for f in inspect(root).findings if f.check_id == "work.registry")
     assert finding.status is FindingStatus.FAIL
 
 
-def test_index_drift_fails_without_rewriting_and_doctor_reports_it(tmp_path: Path) -> None:
-    root = _project(tmp_path)
-    index = root / "docs/features/index.md"
-    original = index.read_text()
-    index.write_text(original + "\n", encoding="utf-8")
+def test_done_requires_complete_record_documentation_and_changelog(tmp_path: Path) -> None:
+    root = project(tmp_path)
+    assert run(root, "new", "--type", "FEATURE", "Completed work").returncode == 0
+    item = root / "docs/work/W001-completed-work.md"
+    text = item.read_text()
+    item.write_text(text.replace("Status: BACKLOG", "Status: READY", 1))
+    assert run(root, "sync").returncode == 0
+    assert run(root, "transition", "W001", "IN_PROGRESS").returncode == 0
+    assert run(root, "transition", "W001", "DONE").returncode != 0
+    assert "Status: IN_PROGRESS" in item.read_text()
 
-    result = _run(root, "check")
-    assert result.returncode != 0 and index.read_text() == original + "\n"
-    finding = next(item for item in inspect(root).findings if item.check_id == "features.registry")
-    assert finding.status is FindingStatus.FAIL
-
-
-def test_registry_survives_detach_and_does_not_require_git(tmp_path: Path) -> None:
-    root = _project(tmp_path)
-    assert not (root / ".git").exists()
-    assert _run(root, "new", "Detached feature").returncode == 0
-    detach_project(root)
-
-    assert not (root / ".agentready").exists()
-    assert _run(root, "check").returncode == 0
-    assert _run(root, "sync").returncode == 0
-    assert _run(root, "next-ready").stdout.strip() == "NO_READY_FEATURE"
-    assert (root / "docs/features/F001-detached-feature.md").is_file()
-
-
-def test_new_rejects_multiline_title(tmp_path: Path) -> None:
-    root = _project(tmp_path)
-    result = _run(root, "new", "Broken\ntitle")
-    assert result.returncode != 0
-    assert not tuple((root / "docs/features").glob("F*.md"))
-
-
-@pytest.mark.parametrize("profile", ("minimal", "application", "service"))
-def test_all_profiles_receive_human_owned_feature_governance(tmp_path: Path, profile: str) -> None:
-    root = tmp_path / f"demo_{profile}"
-    generate_project(root, profile=profile)
-
-    template = (root / "docs/features/template.md").read_text(encoding="utf-8")
-    workflow = (root / "docs/agent/workflows/feature.md").read_text(encoding="utf-8")
-    agents = (root / "AGENTS.md").read_text(encoding="utf-8")
-    required_specification_headings = (
-        "## Product specification (human-owned, normative)",
-        "### Objective",
-        "### Context",
-        "### Functional requirements",
-        "### Inputs and outputs",
-        "### Behavior",
-        "### Constraints",
-        "### Non-goals",
-        "### Acceptance criteria",
-        "### Manual validation (if relevant)",
-        "## Implementation record (agent-maintained)",
+    text = item.read_text()
+    text = text.replace("README: NOT_EVALUATED", "README: NOT_REQUIRED")
+    text = text.replace("ARCHITECTURE: NOT_EVALUATED", "ARCHITECTURE: NOT_REQUIRED")
+    text = text.replace("ADR: NOT_EVALUATED", "ADR: NOT_REQUIRED")
+    text = text.replace("### Result\nNOT_STARTED", "### Result\nCOMPLETE")
+    for placeholder, value in (
+        ("<None yet>", "Updated feature implementation"),
+        ("<None>", "None"),
+    ):
+        text = text.replace(placeholder, value)
+    text = text.replace(
+        "### Verification performed\nNone", "### Verification performed\nTargeted tests passed"
     )
-    assert all(heading in template for heading in required_specification_headings)
-    assert "must not be modified by an implementing agent" in template
-    assert "Never modify them solely" in workflow
-    assert "Do not implement a `BACKLOG` item" in workflow
-    assert "project-owned normative requirements" in agents
+    text = text.replace(
+        "### Design decisions\nNone", "### Design decisions\nKept existing boundaries"
+    )
+    text = text.replace("Summary: <Concise summary>", "Summary: Added completed work")
+    item.write_text(text)
+    assert run(root, "transition", "W001", "DONE").returncode == 0
+    assert run(root, "check").returncode == 0
+    assert "W001 [FEATURE]" in (root / "docs/changelog/index.md").read_text()
+
+
+def test_registry_survives_detach(tmp_path: Path) -> None:
+    root = project(tmp_path)
+    assert run(root, "new", "--type", "DOCS", "Detached documentation").returncode == 0
+    detach_project(root)
+    assert not (root / ".agentready").exists()
+    assert run(root, "check").returncode == 0
+    assert (root / "docs/work/W001-detached-documentation.md").is_file()
+
+
+def test_ready_selection_filters_and_monotonic_ids_across_types(tmp_path: Path) -> None:
+    root = project(tmp_path)
+    for kind, title in (("BUGFIX", "First"), ("DOCS", "Second"), ("FEATURE", "Third")):
+        assert run(root, "new", "--type", kind, title).returncode == 0
+    first = root / "docs/work/W001-first.md"
+    third = root / "docs/work/W003-third.md"
+    first.write_text(first.read_text().replace("Status: BACKLOG", "Status: READY", 1))
+    third.write_text(third.read_text().replace("Status: BACKLOG", "Status: READY", 1))
+    assert run(root, "sync").returncode == 0
+    assert run(root, "next-ready").stdout.strip() == "W001"
+    assert run(root, "next-id").stdout.strip() == "W004"
+    assert run(root, "list", "--status", "READY").stdout.splitlines() == [
+        "W001 [BUGFIX] READY First",
+        "W003 [FEATURE] READY Third",
+    ]
+    assert run(root, "list", "--type", "DOCS").stdout.strip() == "W002 [DOCS] BACKLOG Second"
+    assert run(root, "transition", "W001", "IN_PROGRESS").returncode == 0
+    assert run(root, "next-ready").stdout.strip() == "W003"
+    assert run(root, "transition", "W002", "IN_PROGRESS").returncode != 0
+
+
+@pytest.mark.parametrize(
+    ("filename", "mutation"),
+    (
+        ("W001-duplicate.md", "# W001 — Duplicate\n\nType: FEATURE\nStatus: BACKLOG\n"),
+        ("W002-invalid.md", "# W002 — Invalid\n\nType: UNKNOWN\nStatus: BACKLOG\n"),
+        ("W002-invalid.md", "# W002 — Invalid\n\nType: FEATURE\nStatus: UNKNOWN\n"),
+        ("W002-invalid.md", "# W002 — Invalid\n\nStatus: BACKLOG\nType: FEATURE\n"),
+    ),
+)
+def test_invalid_work_metadata_fails_registry_and_doctor(
+    tmp_path: Path, filename: str, mutation: str
+) -> None:
+    root = project(tmp_path)
+    assert run(root, "new", "--type", "FEATURE", "Original").returncode == 0
+    (root / "docs/work" / filename).write_text(mutation)
+    assert run(root, "check").returncode != 0
+    finding = next(f for f in inspect(root).findings if f.check_id == "work.registry")
+    assert finding.status is FindingStatus.FAIL
+
+
+@pytest.mark.parametrize("relative", ("docs/work/index.md", "docs/changelog/index.md"))
+def test_both_generated_indexes_detect_drift(tmp_path: Path, relative: str) -> None:
+    root = project(tmp_path)
+    path = root / relative
+    path.write_text(path.read_text() + "drift\n")
+    assert run(root, "check").returncode != 0
+    finding = next(f for f in inspect(root).findings if f.check_id == "work.registry")
+    assert finding.status is FindingStatus.FAIL
+    assert finding.path is not None and finding.path.path == Path(relative)
+
+
+@pytest.mark.parametrize(
+    ("original", "replacement"),
+    (
+        ("### Result\nCOMPLETE", "### Result\nNOT_STARTED"),
+        ("### Verification performed\nTargeted tests passed", "### Verification performed\n<None>"),
+        ("README: NOT_REQUIRED", "README: NOT_EVALUATED"),
+        ("Summary: Added completed work", "Summary: "),
+        ("Breaking: NO", "Breaking: "),
+        ("Migration: NOT_REQUIRED", "Migration: "),
+    ),
+)
+def test_done_missing_fields_are_rejected_without_status_change(
+    tmp_path: Path, original: str, replacement: str
+) -> None:
+    root = project(tmp_path)
+    assert run(root, "new", "--type", "FEATURE", "Completed work").returncode == 0
+    item = root / "docs/work/W001-completed-work.md"
+    text = item.read_text()
+    text = text.replace("Status: BACKLOG", "Status: READY", 1)
+    text = text.replace("README: NOT_EVALUATED", "README: NOT_REQUIRED")
+    text = text.replace("ARCHITECTURE: NOT_EVALUATED", "ARCHITECTURE: NOT_REQUIRED")
+    text = text.replace("ADR: NOT_EVALUATED", "ADR: NOT_REQUIRED")
+    text = text.replace("### Result\nNOT_STARTED", "### Result\nCOMPLETE")
+    text = text.replace("<None yet>", "Updated implementation")
+    text = text.replace("<None>", "None")
+    text = text.replace(
+        "### Verification performed\nNone", "### Verification performed\nTargeted tests passed"
+    )
+    text = text.replace("Summary: <Concise summary>", "Summary: Added completed work")
+    assert original in text
+    item.write_text(text.replace(original, replacement, 1))
+    assert run(root, "transition", "W001", "IN_PROGRESS").returncode == 0
+    assert run(root, "transition", "W001", "DONE").returncode != 0
+    assert "Status: IN_PROGRESS" in item.read_text()

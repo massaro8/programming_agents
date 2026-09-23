@@ -25,18 +25,34 @@ _COMMON_PROJECT_OWNED = (
 )
 _COMMON_SHARED = (
     "AGENTS.md",
-    "docs/features/template.md",
-    "scripts/feature_registry.py",
+    "docs/work/templates/feature.md",
+    "docs/work/templates/bugfix.md",
+    "docs/work/templates/refactor.md",
+    "docs/work/templates/maintenance.md",
+    "docs/work/templates/documentation.md",
+    "docs/work/templates/security.md",
+    "scripts/work_registry.py",
+    "docs/adr/0000-template.md",
     "docs/agent/index.md",
     "docs/agent/standards/python.md",
     "docs/agent/standards/architecture.md",
     "docs/agent/standards/testing.md",
     "docs/agent/standards/dependencies.md",
+    "docs/agent/standards/documentation.md",
+    "docs/agent/standards/security.md",
     "docs/agent/workflows/feature.md",
     "docs/agent/workflows/bugfix.md",
     "docs/agent/workflows/refactor.md",
+    "docs/agent/workflows/maintenance.md",
+    "docs/agent/workflows/documentation.md",
+    "docs/agent/workflows/security.md",
 )
-_COMMON_GENERATED = ("CLAUDE.md", ".agentready/manifest.toml", "docs/features/index.md")
+_COMMON_GENERATED = (
+    "CLAUDE.md",
+    ".agentready/manifest.toml",
+    "docs/work/index.md",
+    "docs/changelog/index.md",
+)
 _PROFILE_FILES: dict[str, tuple[str, ...]] = {
     "minimal": (
         "src/{package}/__init__.py",

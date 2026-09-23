@@ -66,8 +66,14 @@ agentready detach .
 
 `detach` removes only the recognized `.agentready/` maintenance boundary. It preserves source,
 tests, configuration, CI, README, architecture documentation, `AGENTS.md`, `CLAUDE.md`, and
-`docs/agent/**`. A second detach returns a deterministic non-zero “not managed or already detached”
-result.
+`docs/agent/**`, `docs/work/**`, `docs/changelog/**`, `docs/adr/**`, and the local
+`scripts/work_registry.py` utility. A second detach returns a deterministic non-zero “not managed or
+already detached” result.
+
+Generated projects track six kinds of work under `docs/work/`. Humans approve normative specifications
+as `READY`; agents follow the type-specific workflow, record verification and documentation impact,
+then synchronize the deterministic work index and changelog. The local registry remains usable after
+detach and has no AgentReady runtime dependency.
 
 ## What doctor checks
 
@@ -78,6 +84,7 @@ Doctor is read-only, deterministic, local, and non-AI. For the bundled Python pr
 - `AGENTS.md`, declared adapters, and repository-local guidance references;
 - expected Python source/test/configuration/CI structure;
 - absence of an AgentReady dependency in supported dependency tables;
+- work-item metadata and consistency of the generated work index and changelog;
 - structural prerequisites needed for safe detach.
 
 It does not run project tests, builds, Git operations, network requests, or editorial/LLM review.
@@ -111,7 +118,7 @@ Repository content and suggested commands should still be treated as untrusted i
 
 ## Current limitations
 
-- Python 3.12+ and one bundled Python project profile only.
+- Python 3.12+ and the bundled minimal, application, and service profiles only.
 - Init supports new missing or empty directories, not adoption or updating.
 - Doctor performs structural checks, not Git analysis or executable quality auditing.
 - Detach supports recognized schema-1 AgentReady projects and has no force or repair mode.

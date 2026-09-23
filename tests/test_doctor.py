@@ -117,13 +117,13 @@ def test_missing_agents_fails_guidance_and_declared_artifact(tmp_path: Path) -> 
     "relative",
     ("docs/agent/workflows/feature.md", "docs/agent/standards/testing.md"),
 )
-def test_missing_referenced_guidance_fails_with_path(tmp_path: Path, relative: str) -> None:
+def test_missing_guidance_fails_declared_artifact(tmp_path: Path, relative: str) -> None:
     root = _project(tmp_path)
     (root / relative).unlink()
 
-    report = _assert_fails(root, "guidance.references")
+    report = _assert_fails(root, "ownership.artifacts")
 
-    finding = _finding(report, "guidance.references")
+    finding = _finding(report, "ownership.artifacts")
     assert finding.path is not None
     assert finding.path.path.as_posix() == relative
     assert _finding(report, "ownership.artifacts").status is FindingStatus.FAIL

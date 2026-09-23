@@ -79,21 +79,33 @@ def test_qualify_independent_generated_project(tmp_path: Path, profile: str) -> 
     ownership = {key: set(value) for key, value in manifest["ownership"].items()}
     assert ownership["shared"] == {
         "AGENTS.md",
-        "docs/features/template.md",
-        "scripts/feature_registry.py",
+        "docs/work/templates/feature.md",
+        "docs/work/templates/bugfix.md",
+        "docs/work/templates/refactor.md",
+        "docs/work/templates/maintenance.md",
+        "docs/work/templates/documentation.md",
+        "docs/work/templates/security.md",
+        "scripts/work_registry.py",
+        "docs/adr/0000-template.md",
         "docs/agent/index.md",
         "docs/agent/standards/python.md",
         "docs/agent/standards/architecture.md",
         "docs/agent/standards/testing.md",
         "docs/agent/standards/dependencies.md",
+        "docs/agent/standards/documentation.md",
+        "docs/agent/standards/security.md",
         "docs/agent/workflows/feature.md",
         "docs/agent/workflows/bugfix.md",
         "docs/agent/workflows/refactor.md",
+        "docs/agent/workflows/maintenance.md",
+        "docs/agent/workflows/documentation.md",
+        "docs/agent/workflows/security.md",
     }
     assert ownership["generated"] == {
         "CLAUDE.md",
         ".agentready/manifest.toml",
-        "docs/features/index.md",
+        "docs/work/index.md",
+        "docs/changelog/index.md",
     }
     assert profile == "service" or not any("adapters/" in path for path in first_files)
     if profile == "minimal":
@@ -135,9 +147,7 @@ def test_qualify_independent_generated_project(tmp_path: Path, profile: str) -> 
         assert "import agentready" not in content and "from agentready" not in content
     agents = (first_project / "AGENTS.md").read_text()
     assert len(agents) < 2_000
-    assert (
-        "docs/agent/standards/testing.md" in agents and "docs/agent/workflows/feature.md" in agents
-    )
+    assert "docs/agent/index.md" in agents and "docs/work/" in agents
     assert (
         first_project / "CLAUDE.md"
     ).read_text().strip() == "See [AGENTS.md](AGENTS.md) for the canonical project guidance."
@@ -159,7 +169,7 @@ def test_qualify_independent_generated_project(tmp_path: Path, profile: str) -> 
     run([uv, "run", "python", "-c", probe], first_project, project_env)
     run([uv, "build"], first_project, project_env)
     run(
-        [uv, "run", "python", "scripts/feature_registry.py", "check"],
+        [uv, "run", "python", "scripts/work_registry.py", "check"],
         first_project,
         project_env,
     )

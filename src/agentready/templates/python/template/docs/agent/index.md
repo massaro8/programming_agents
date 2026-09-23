@@ -1,35 +1,23 @@
-# Agent guidance index
+# Agent guidance
 
-Read the canonical `AGENTS.md` first. The `docs/agent/` tree explains HOW to work in this repository;
-the `docs/features/` tree records WHAT the repository should deliver. Use the generated feature index
-to route work and do not read every feature specification unless the selected feature requires it.
-These documents are repository-local guidance and remain useful after detach.
+Start here, then read only the workflow and standards relevant to the selected work item.
+Normative requirements are project-owned in `docs/work/`; the implementing agent maintains its
+implementation record. Never change requirements to fit an implementation. If blocked, record the
+exact blocker, transition to BLOCKED, and stop.
 
-- [Python](standards/python.md)
-- [Architecture](standards/architecture.md)
-- [Testing](standards/testing.md)
-- [Dependencies](standards/dependencies.md)
-- [Feature workflow](workflows/feature.md)
-- [Bugfix workflow](workflows/bugfix.md)
-- [Refactor workflow](workflows/refactor.md)
+## Work type routing
 
-Feature registry and specifications:
+| Type | Workflow |
+| --- | --- |
+| FEATURE | [Feature](workflows/feature.md) |
+| BUGFIX | [Bugfix](workflows/bugfix.md) |
+| REFACTOR | [Refactor](workflows/refactor.md) |
+| MAINTENANCE | [Maintenance](workflows/maintenance.md) |
+| DOCS | [Documentation](workflows/documentation.md) |
+| SECURITY | [Security](workflows/security.md) |
 
-- [Feature registry](../features/index.md) (generated; do not edit manually)
-- [Feature template](../features/template.md)
-
-Normative product requirements are project-owned. Implementing agents must not rewrite them merely
-to fit an implementation. Requirement authoring and implementation are separate routes:
-
-- Author a specification only when explicitly requested: run `python scripts/feature_registry.py
-  new "TITLE"` or use the template, help structure the human's requirements, and leave the feature
-  `BACKLOG` unless the project owner explicitly approves `READY`.
-- Implement approved work: consult the registry, select the requested or next `READY` feature, read
-  only that specification, and follow the feature workflow.
-
-Minimal user interactions:
-
-- `Create a feature scaffold titled "<title>".`
-- `Implement the next READY feature.`
-
-The human may edit a specification directly. The generated index is never edited manually.
+Select one READY item from [the work registry](../work/index.md), inspect its Type, and follow that
+workflow. Read [Python](standards/python.md) for Python changes; [architecture](standards/architecture.md)
+for boundary changes; [testing](standards/testing.md) when adding or changing tests;
+[dependencies](standards/dependencies.md) for dependency work; [documentation](standards/documentation.md)
+for doc changes; and [security](standards/security.md) for security-sensitive work.

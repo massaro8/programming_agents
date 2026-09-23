@@ -92,6 +92,31 @@ def test_formal_detach_no_lock_in_qualification(tmp_path: Path, profile: str) ->
     project = tmp_path / "project" / "demo_agentready"
     project.parent.mkdir()
     run([str(tool), "init", str(project), "--profile", profile], tmp_path, env)
+    run(
+        [
+            uv,
+            "run",
+            "python",
+            "scripts/work_registry.py",
+            "new",
+            "--type",
+            "BUGFIX",
+            "Correct greeting",
+        ],
+        project,
+        env,
+    )
+    run(
+        [uv, "run", "python", "scripts/work_registry.py", "new", "--type", "DOCS", "Clarify usage"],
+        project,
+        env,
+    )
+    ready_item = project / "docs/work/W001-correct-greeting.md"
+    ready_item.write_text(
+        ready_item.read_text(encoding="utf-8").replace("Status: BACKLOG", "Status: READY", 1),
+        encoding="utf-8",
+    )
+    run([uv, "run", "python", "scripts/work_registry.py", "sync"], project, env)
     doctor = subprocess.run(
         [str(tool), "doctor", str(project), "--format", "json"],
         cwd=tmp_path,
@@ -111,7 +136,15 @@ def test_formal_detach_no_lock_in_qualification(tmp_path: Path, profile: str) ->
     assert manifest["profile"] == profile
     for command in BASELINE:
         run([uv, *command[1:]], project, env)
-    run([uv, "run", "python", "scripts/feature_registry.py", "check"], project, env)
+    run([uv, "run", "python", "scripts/work_registry.py", "check"], project, env)
+    assert (
+        run([uv, "run", "python", "scripts/work_registry.py", "next-id"], project, env).strip()
+        == "W003"
+    )
+    assert (
+        run([uv, "run", "python", "scripts/work_registry.py", "next-ready"], project, env).strip()
+        == "W001"
+    )
     run([uv, "build"], project, env)
     assert_frameworks_absent(uv, project, env)
     before = snapshot(project)
@@ -131,7 +164,13 @@ def test_formal_detach_no_lock_in_qualification(tmp_path: Path, profile: str) ->
     assert set(after) == set(before) - removed
     assert all(after[name] == before[name] for name in after)
     assert not (project / ".agentready").exists()
-    run([uv, "run", "python", "scripts/feature_registry.py", "check"], project, env)
+    run([uv, "run", "python", "scripts/work_registry.py", "check"], project, env)
+    run([uv, "run", "python", "scripts/work_registry.py", "sync"], project, env)
+    assert "W002 [DOCS] BACKLOG" in run(
+        [uv, "run", "python", "scripts/work_registry.py", "list"], project, env
+    )
+    assert (project / "docs/changelog/index.md").is_file()
+    assert (project / "docs/adr/0000-template.md").is_file()
     shutil.rmtree(tool_env)
     assert not tool_env.exists()
     for transient in (".venv", ".pytest_cache", ".ruff_cache", ".mypy_cache", "dist", "build"):
@@ -159,10 +198,7 @@ def test_formal_detach_no_lock_in_qualification(tmp_path: Path, profile: str) ->
     agents = (project / "AGENTS.md").read_text(encoding="utf-8")
     assert all(
         reference in agents and (project / reference).is_file()
-        for reference in (
-            "docs/agent/standards/testing.md",
-            "docs/agent/workflows/feature.md",
-        )
+        for reference in ("docs/agent/index.md",)
     )
     assert "[AGENTS.md](AGENTS.md)" in (project / "CLAUDE.md").read_text(encoding="utf-8")
     app_wheel = next((project / "dist").glob("*.whl"))
