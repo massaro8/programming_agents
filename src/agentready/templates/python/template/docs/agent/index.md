@@ -1,23 +1,24 @@
 # Agent guidance
 
-Start here, then read only the workflow and standards relevant to the selected work item.
-Normative requirements are project-owned in `docs/work/`; the implementing agent maintains its
-implementation record. Never change requirements to fit an implementation. If blocked, record the
-exact blocker, transition to BLOCKED, and stop.
+Use the [context efficiency standard](standards/context-efficiency.md): follow its context
+waterfall, search before opening files, and expand only when evidence requires it. Normative
+requirements live in project-owned `docs/work/`; never change them to fit an implementation.
 
-## Work type routing
+## Work routing
 
-| Type | Workflow |
-| --- | --- |
-| FEATURE | [Feature](workflows/feature.md) |
-| BUGFIX | [Bugfix](workflows/bugfix.md) |
-| REFACTOR | [Refactor](workflows/refactor.md) |
-| MAINTENANCE | [Maintenance](workflows/maintenance.md) |
-| DOCS | [Documentation](workflows/documentation.md) |
-| SECURITY | [Security](workflows/security.md) |
+| Type or need | Skill when supported | Canonical fallback |
+| --- | --- | --- |
+| FEATURE | `feature-builder` | [Feature workflow](workflows/feature.md) |
+| BUGFIX | `bug-investigation` | [Bugfix workflow](workflows/bugfix.md) |
+| REFACTOR | `refactoring` | [Refactor workflow](workflows/refactor.md) |
+| MAINTENANCE | `maintenance` | [Maintenance workflow](workflows/maintenance.md) |
+| DOCS | `documentation` | [Documentation workflow](workflows/documentation.md) |
+| SECURITY | `security-review` | [Security workflow](workflows/security.md) |
+| Unfamiliar area | `repo-explore` | [Repo exploration](workflows/repo-explore.md) |
+| New or moved module | `module-placement` | [Module placement](workflows/module-placement.md) |
 
-Select one READY item from [the work registry](../work/index.md), inspect its Type, and follow that
-workflow. Read [Python](standards/python.md) for Python changes; [architecture](standards/architecture.md)
-for boundary changes; [testing](standards/testing.md) when adding or changing tests;
-[dependencies](standards/dependencies.md) for dependency work; [documentation](standards/documentation.md)
-for doc changes; and [security](standards/security.md) for security-sensitive work.
+Select one READY item from [the work registry](../work/index.md), inspect its Type, then use the
+matching skill or fallback above. Load only relevant standards: [Python](standards/python.md),
+[architecture](standards/architecture.md), [testing](standards/testing.md),
+[dependencies](standards/dependencies.md), [documentation](standards/documentation.md), or
+[security](standards/security.md). If blocked, record the blocker, transition to BLOCKED, and stop.

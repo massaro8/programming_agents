@@ -67,10 +67,11 @@ Generated repository files belong to one of three classes:
 
 1. **PROJECT-OWNED** - source, tests, app config, architecture docs, completed ADRs, and human-owned
    work specifications; AgentReady must not silently overwrite them after bootstrap.
-2. **SHARED** - generic workflows, standards, work templates, the local registry utility, and ADR
-   template; updates are explicit proposals/merges.
-3. **GENERATED** - thin agent-specific views and deterministic work/changelog indexes. Generated
-   does not mean delete-on-detach.
+2. **SHARED** - generic workflows, standards, work templates, skill adapters, local project and
+   architecture utilities, map generator, registry utility, and ADR template; updates are explicit
+   proposals/merges.
+3. **GENERATED** - thin agent-specific views and deterministic work/changelog indexes and codebase
+   map. Generated does not mean delete-on-detach.
 
 The local `docs/work/Wxxx-*.md` item is the source of truth for its specification and implementation
 record. `scripts/work_registry.py` produces `docs/work/index.md` and `docs/changelog/index.md` without
@@ -88,6 +89,12 @@ AGENTS.md
 as the vendor-neutral canonical corpus.
 
 Agent-specific artifacts must remain thin and deterministic.
+
+Application and service profiles place capability code under `src/<package>/modules/<capability>/`.
+The generated module-placement standard is authoritative; a stdlib structural check catches known
+root-bucket and direct import-direction violations. The project-local `scripts/project.py` is the
+stable check/verify interface after detach. Normal init is generation-only; opt-in `--bootstrap`
+prepares the environment using `uv` and trusted local checks.
 
 ## Template engine decision
 

@@ -11,6 +11,7 @@ from pathlib import Path
 from agentready.core.ownership import ArtifactOwnership, OwnershipClass
 from agentready.core.profiles import get_profile
 from agentready.core.project import Project, ProjectPath
+from agentready.doctor.codebase_map import validate as validate_codebase_map
 from agentready.doctor.work import validate as validate_work
 
 CHECKS = (
@@ -23,6 +24,7 @@ CHECKS = (
     "guidance.agents",
     "guidance.references",
     "repository.structure",
+    "repository.codebase_map",
     "repository.independence",
     "work.registry",
     "detach.ready",
@@ -335,6 +337,20 @@ def inspect(root: Path | str = ".") -> DoctorReport:
             "repository structure for the selected profile is present"
             if structure_ok
             else "required repository structure is missing or unsafe",
+        )
+    )
+    map_pp, map_text = _read_safe_text(project, "docs/generated/CODEBASE_MAP.md")
+    map_ok = profile_contract is not None and validate_codebase_map(
+        project.path, package, profile_contract.name, map_text
+    )
+    findings.append(
+        _finding(
+            "repository.codebase_map",
+            map_ok,
+            "codebase map matches module structure"
+            if map_ok
+            else "codebase map is missing, unsafe, or stale; regenerate it",
+            map_pp,
         )
     )
     independence = False

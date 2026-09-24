@@ -67,6 +67,18 @@ def test_generated_project_is_healthy_ordered_and_deterministic(tmp_path: Path) 
     assert all(item.status is FindingStatus.PASS for item in first.findings)
 
 
+def test_codebase_map_detects_new_module_without_executing_project_code(tmp_path: Path) -> None:
+    root = tmp_path / "demo_agentready"
+    generate_project(root, profile="application")
+    (root / "src/demo_agentready/modules/catalog").mkdir()
+
+    before = _snapshot(root)
+    report = _assert_fails(root, "repository.codebase_map")
+
+    assert "stale" in _finding(report, "repository.codebase_map").message
+    assert _snapshot(root) == before
+
+
 def test_human_output_is_grouped_and_terminal(tmp_path: Path) -> None:
     output = format_report(inspect(_project(tmp_path)))
 

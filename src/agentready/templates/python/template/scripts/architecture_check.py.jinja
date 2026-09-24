@@ -1,0 +1,101 @@
+"""Deterministic structure and import-direction checks for this project."""
+
+from __future__ import annotations
+
+import ast
+import sys
+from pathlib import Path
+
+PACKAGE = "{{ package_name }}"
+PROFILE = "{{ profile }}"
+ROOT = Path(__file__).resolve().parents[1]
+PACKAGE_ROOT = ROOT / "src" / PACKAGE
+ROOT_MODULES = {"__init__", "main", "__main__", "bootstrap", "config"}
+FORBIDDEN_ROOT_BUCKETS = {"services", "models", "repositories", "utils", "helpers"}
+
+
+def imported_modules(tree: ast.Module, current: tuple[str, ...]) -> set[tuple[str, ...]]:
+    found: set[tuple[str, ...]] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                parts = tuple(alias.name.split("."))
+                if parts and parts[0] == PACKAGE:
+                    found.add(parts[1:])
+        elif isinstance(node, ast.ImportFrom):
+            if node.level:
+                base = current[: len(current) - node.level + 1]
+                parts = (*base, *(node.module.split(".") if node.module else ()))
+            else:
+                absolute = tuple((node.module or "").split("."))
+                if not absolute or absolute[0] != PACKAGE:
+                    continue
+                parts = absolute[1:]
+            if parts:
+                found.add(tuple(parts))
+            found.update((*parts, alias.name) for alias in node.names if alias.name != "*")
+    return found
+
+
+def _outer_dependency(target: tuple[str, ...], layer: str) -> bool:
+    if not target:
+        return False
+    if target[0] in {"entrypoints", "bootstrap", "config", "platform"}:
+        return True
+    if len(target) < 3 or target[0] != "modules":
+        return False
+    forbidden = {"adapters"} if layer == "application" else {"application", "adapters"}
+    return target[2] in forbidden
+
+
+def check() -> list[str]:
+    if PROFILE == "minimal":
+        return []
+    errors: list[str] = []
+    for path in sorted(PACKAGE_ROOT.rglob("*.py")):
+        relative = path.relative_to(PACKAGE_ROOT)
+        parts = relative.with_suffix("").parts
+        if len(parts) == 1 and parts[0] not in ROOT_MODULES:
+            errors.append(
+                f"{relative}: package-root implementation is not allowed; "
+                "place it under modules/<capability>/"
+            )
+        layer = (
+            parts[2]
+            if len(parts) >= 4 and parts[0] == "modules" and parts[2] in {"domain", "application"}
+            else ""
+        )
+        if layer not in {"domain", "application"}:
+            continue
+        try:
+            tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(relative))
+        except SyntaxError as exc:
+            errors.append(f"{relative}: cannot parse imports: {exc}")
+            continue
+        current = tuple(parts[:-1])
+        for target in imported_modules(tree, current):
+            if _outer_dependency(target, layer):
+                errors.append(f"{relative}: {layer} must not depend on {'.'.join(target)}")
+    for bucket in sorted(FORBIDDEN_ROOT_BUCKETS):
+        candidate = PACKAGE_ROOT / bucket
+        if candidate.exists():
+            errors.append(
+                f"{candidate.relative_to(ROOT)}: global {bucket}/ bucket is ambiguous; "
+                "place code under modules/<capability>/"
+            )
+    return sorted(set(errors))
+
+
+def main() -> int:
+    errors = check()
+    if errors:
+        print("Architecture check failed:", file=sys.stderr)
+        for error in errors:
+            print(f"- {error}", file=sys.stderr)
+        return 1
+    print("Architecture check passed.")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

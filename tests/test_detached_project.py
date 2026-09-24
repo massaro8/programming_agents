@@ -92,6 +92,7 @@ def test_formal_detach_no_lock_in_qualification(tmp_path: Path, profile: str) ->
     project = tmp_path / "project" / "demo_agentready"
     project.parent.mkdir()
     run([str(tool), "init", str(project), "--profile", profile], tmp_path, env)
+    run([uv, "run", "python", "scripts/project.py", "bootstrap"], project, env)
     run(
         [
             uv,
@@ -146,6 +147,7 @@ def test_formal_detach_no_lock_in_qualification(tmp_path: Path, profile: str) ->
         == "W001"
     )
     run([uv, "build"], project, env)
+    run([uv, "run", "python", "scripts/project.py", "verify"], project, env)
     assert_frameworks_absent(uv, project, env)
     before = snapshot(project)
     guidance = {
@@ -164,6 +166,9 @@ def test_formal_detach_no_lock_in_qualification(tmp_path: Path, profile: str) ->
     assert set(after) == set(before) - removed
     assert all(after[name] == before[name] for name in after)
     assert not (project / ".agentready").exists()
+    run([uv, "run", "python", "scripts/project.py", "bootstrap"], project, env)
+    run([uv, "run", "python", "scripts/project.py", "check"], project, env)
+    run([uv, "run", "python", "scripts/project.py", "verify"], project, env)
     run([uv, "run", "python", "scripts/work_registry.py", "check"], project, env)
     run([uv, "run", "python", "scripts/work_registry.py", "sync"], project, env)
     assert "W002 [DOCS] BACKLOG" in run(

@@ -1,0 +1,108 @@
+"""Regenerate or check the compact structural codebase map (stdlib only)."""
+
+from __future__ import annotations
+
+import argparse
+from pathlib import Path
+
+PACKAGE = "{{ package_name }}"
+PROFILE = "{{ profile }}"
+ROOT = Path(__file__).resolve().parents[1]
+DESTINATION = ROOT / "docs" / "generated" / "CODEBASE_MAP.md"
+
+
+def render() -> str:
+    profile = PROFILE
+    package = ROOT / "src" / PACKAGE
+    modules_root = package / "modules"
+    modules = (
+        sorted(
+            path
+            for path in modules_root.iterdir()
+            if path.is_dir() and not path.name.startswith((".", "__"))
+        )
+        if modules_root.exists()
+        else []
+    )
+    lines = [
+        "# Codebase Map",
+        "",
+        f"Profile: `{profile}`",
+        "",
+        "## Entrypoints",
+        "",
+        f"- Public facade: `{package.name}.main.greet`",
+    ]
+    if (package / "__main__.py").exists():
+        lines.extend(
+            [
+                f"- CLI: `{package.name}.entrypoints.cli:main`",
+                f"- Module runner: `python -m {package.name}`",
+            ]
+        )
+    lines.extend(["", "## Modules", ""])
+    if modules:
+        for module in modules:
+            layers = [
+                name for name in ("domain", "application", "adapters") if (module / name).exists()
+            ]
+            lines.append(
+                f"- `{module.name}`: "
+                + (", ".join(f"`{layer}`" for layer in layers) or "module package")
+            )
+            for adapter in (
+                sorted((module / "adapters").glob("*.py")) if (module / "adapters").exists() else []
+            ):
+                if adapter.name != "__init__.py":
+                    adapter_name = adapter.relative_to(package).as_posix()[:-3].replace("/", ".")
+                    lines.append(f"  - Adapter: `{adapter_name}`")
+    else:
+        lines.append("- No capability modules yet; this profile keeps code at package root.")
+    lines.extend(["", "## Platform and shared", ""])
+    for name in ("platform", "shared"):
+        directory = package / name
+        found = (
+            sorted(
+                path.name
+                for path in directory.iterdir()
+                if path.is_dir() and not path.name.startswith((".", "__"))
+            )
+            if directory.exists()
+            else []
+        )
+        lines.append(
+            f"- `{name}/`: "
+            + (", ".join(f"`{item}`" for item in found) if found else "not present")
+        )
+    lines.extend(
+        [
+            "",
+            "## Tests and commands",
+            "",
+            "- Tests: `tests/`",
+            "- `uv run pytest`",
+            "- `uv run python scripts/architecture_check.py`",
+            "- `uv run python scripts/generate_codebase_map.py --check`",
+            "",
+        ]
+    )
+    return "\n".join(lines)
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--check", action="store_true", help="fail if the checked-in map is stale")
+    args = parser.parse_args()
+    content = render()
+    if args.check:
+        if not DESTINATION.exists() or DESTINATION.read_text(encoding="utf-8") != content:
+            print("CODEBASE_MAP.md is stale; run python scripts/generate_codebase_map.py")
+            return 1
+    else:
+        DESTINATION.parent.mkdir(parents=True, exist_ok=True)
+        DESTINATION.write_text(content, encoding="utf-8")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -29,7 +29,8 @@ implementation through the unified work lifecycle.
 
 ### Setup
 
-Run `agentready init practical-app --profile application`, verify its baseline tests, and open it in
+Run `agentready init practical-app --profile application --bootstrap`, run
+`python scripts/project.py verify`, and open it in
 a fresh coding-agent session only after the project owner has:
 
 1. run `python scripts/work_registry.py new --type FEATURE "OpenRouter model catalog"`;
@@ -44,17 +45,26 @@ The human-authored W001 is the fixed input to the implementation session.
 
 ### Procedure and evidence
 
-- Observe whether the agent reads `AGENTS.md`, routes by Type, and reads only the human-authored
-  W001 specification rather than creating or rewriting product requirements.
+- Observe whether the agent reads `AGENTS.md`, routes FEATURE to the `feature-builder` skill (or
+  the equivalent canonical workflow when native skills are unavailable), and reads only the
+  human-authored W001 specification rather than creating or rewriting product requirements.
+- Record whether it uses the generated codebase map and module-placement policy to select a
+  cohesive capability under `src/<package>/modules/`, without creating a W001 module or a
+  package-root dumping ground. Record coordinator/fast-builder routing when the agent supports it;
+  do not require a particular provider or model name.
 - Record its plan, files read/changed, tests added, and verification commands.
 - Require the agent to transition `W001` through `IN_PROGRESS` to `DONE`, record implementation,
   verification, documentation impact, and changelog fields, then run `python scripts/work_registry.py check`.
 - Confirm the work/changelog indexes update and compare the normative specification before and after
   implementation, requiring it to remain
   unchanged. Material ambiguity must produce BLOCKED plus an exact question, not an assumption.
-- Require `agentready doctor` to be healthy before detach, and confirm `work_registry.py` and the
-  changelog continue to work after detaching a copy of the completed project.
-- Require Ruff format/check, mypy, and pytest to pass.
+- Require `python scripts/architecture_check.py` and `python scripts/project.py check` before
+  completion, including an explicit README/architecture/ADR impact decision and changelog entry.
+- Require `agentready doctor` to be healthy before detach, and confirm `project.py verify`,
+  `work_registry.py`, and the changelog continue to work after detaching a copy of the completed
+  project.
+- Live-test the completed OpenRouter behavior against the human-owned W001 acceptance criteria;
+  static checks alone are not sufficient evidence of a working integration.
 - Review for unnecessary abstractions, dependency additions, unrelated edits, and missing tests.
 - Confirm no `W001` is created in the AgentReady product repository and no issue-tracker, backend,
   telemetry, or unrelated project-management machinery is introduced.

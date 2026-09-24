@@ -1,0 +1,33 @@
+# Module placement
+
+For application and service profiles, organize code by cohesive capability under
+`src/{{ package_name }}/modules/<capability>/`. A capability can serve several work items over time;
+do not create one module per task. Create only the layers a capability needs.
+
+For each implementation unit, ask in order:
+
+1. Is it specific to one business or domain capability? Put it in that capability's module.
+2. Is it domain logic without external side effects? Use `modules/<capability>/domain/`.
+3. Is it use-case orchestration? Use `modules/<capability>/application/`.
+4. Does it implement external I/O such as HTTP, files, databases, queues, or vendor APIs? Use
+   `modules/<capability>/adapters/`. Put genuinely shared technical infrastructure used across
+   modules in `platform/<capability>/`.
+5. Is it a driving interface such as a CLI, HTTP endpoint, worker, or scheduled job? Use
+   `entrypoints/` and keep it thin.
+6. Is it project-wide composition? Use `bootstrap.py`.
+7. Is it project-wide configuration? Use `config.py`.
+8. Is it a stable, domain-neutral primitive used by multiple modules? Use `shared/`, which should
+   remain small.
+9. If none fits, identify the owning module first. Do not put feature code at package root because
+   placement is uncertain.
+
+Avoid global root buckets named `services/`, `models/`, `repositories/`, `utils/`, or `helpers/`:
+they obscure capability ownership. A module may still have a domain-local `models.py` or
+`services.py` when that name has a clear meaning there. Keep `platform/` and `shared/` absent until
+real consumers need them.
+
+The minimal profile stays direct while it is small. When unrelated capabilities begin accumulating,
+consider migrating to this module structure instead of adding global buckets.
+
+Mirror package boundaries in `tests/` when useful (for example, `tests/modules/<capability>/`).
+Always keep tests focused on observable behavior and run the checks listed in `README.md`.

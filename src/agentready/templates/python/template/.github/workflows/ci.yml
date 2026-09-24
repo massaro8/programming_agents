@@ -11,7 +11,4 @@ jobs:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
       - run: uv sync --all-groups
-      - run: uv run ruff format --check .
-      - run: uv run ruff check .
-      - run: uv run mypy src
-      - run: uv run pytest
+      - run: uv run python scripts/project.py verify

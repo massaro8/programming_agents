@@ -4,8 +4,19 @@ This project uses a small Python package with a `src/` layout and the **{{ profi
 Application code is independent of the generator that created this repository.
 
 {% if profile == "minimal" %}The minimal profile keeps one direct entrypoint in `main.py` and is
-intentionally free of speculative layers.
-{% else %}The entrypoint and `bootstrap.py` compose the application service. The application layer
-depends inward on domain code; the service profile additionally exposes a small console adapter
-that depends on the application layer. The structure is framework-neutral and deliberately tiny.
+intentionally free of speculative layers. When multiple unrelated capabilities begin to
+accumulate, do not create global `services/`, `models/`, `repositories/`, or `utils/` buckets;
+consider migrating to the module structure described in `docs/agent/standards/module-placement.md`.
+{% else %}The `greeting` capability lives under `modules/greeting/`; domain and application logic
+depend inward, while the service profile additionally places its console adapter in that module.
+`bootstrap.py` composes the service, and `entrypoints/cli.py` is a thin driver. The structure is
+framework-neutral and deliberately tiny.
+
+Place pure capability rules in `modules/<capability>/domain/`, use-case orchestration in
+`application/`, and external I/O in that module's `adapters/`. Driving interfaces belong in
+`entrypoints/`; project-wide configuration belongs in `config.py`. Domain does not depend on
+application or outer layers, and application does not depend on adapters or entrypoints.
+`platform/` is reserved for technical infrastructure genuinely shared by multiple capabilities;
+`shared/` is for a very small set of stable domain-neutral primitives. Create neither until needed.
+The full decision tree is in `docs/agent/standards/module-placement.md`.
 {% endif %}

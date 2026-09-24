@@ -1,0 +1,32 @@
+# Codebase Map
+
+Profile: `{{ profile }}`
+
+## Entrypoints
+
+- Public facade: `{{ package_name }}.main.greet`
+{% if profile != "minimal" -%}
+- CLI: `{{ package_name }}.entrypoints.cli:main`
+- Module runner: `python -m {{ package_name }}`
+{% endif %}
+## Modules
+
+{% if profile == "minimal" -%}
+- No capability modules yet; this profile keeps code at package root.
+{% elif profile == "application" -%}
+- `greeting`: `domain`, `application`
+{% else -%}
+- `greeting`: `domain`, `application`, `adapters`
+  - Adapter: `modules.greeting.adapters.console`
+{% endif %}
+## Platform and shared
+
+- `platform/`: not present
+- `shared/`: not present
+
+## Tests and commands
+
+- Tests: `tests/`
+- `uv run pytest`
+- `uv run python scripts/architecture_check.py`
+- `uv run python scripts/generate_codebase_map.py --check`

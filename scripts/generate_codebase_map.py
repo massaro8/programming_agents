@@ -27,7 +27,7 @@ def tracked_files() -> list[str]:
             capture_output=True,
             text=True,
         )
-        files = [line for line in result.stdout.splitlines() if line]
+        files = [line for line in result.stdout.splitlines() if line and (ROOT / line).is_file()]
     except (subprocess.CalledProcessError, FileNotFoundError):
         excluded = {
             ".git",

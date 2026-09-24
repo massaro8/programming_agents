@@ -2,15 +2,17 @@
 
 {% if profile == "minimal" -%}
 Keep the minimal profile direct: `main.py` owns the small public behavior. Do not introduce domain,
-application, or adapter layers until a concrete feature needs a stable boundary.
+application, or adapter layers until a concrete feature needs a stable boundary. When multiple
+unrelated capabilities begin accumulating, avoid global `services/`, `models/`, `repositories/`,
+and `utils/` buckets; consider migrating to modules.
 {% elif profile == "application" -%}
-Preserve `main`/bootstrap → application → domain. The domain must not import application code,
-configuration, frameworks, or infrastructure. Bootstrap is the composition root; configuration is
-read at that boundary and passed inward explicitly.
+Preserve entrypoint/bootstrap → module application → module domain. Domain must not import
+application code, configuration, frameworks, or infrastructure. Bootstrap is the composition
+root; configuration is read at that boundary and passed inward explicitly.
 {% else -%}
-Preserve entrypoint/bootstrap → application → domain. Adapters may depend on application or
-domain contracts, never the reverse. Bootstrap selects and wires concrete adapters; keep framework
-and side-effect details at those outer boundaries.
+Preserve entrypoint/bootstrap → module adapters/application → module domain. Adapters may depend on
+application or domain contracts, never the reverse. Bootstrap selects and wires concrete adapters;
+keep framework and side-effect details at those outer boundaries.
 {% endif %}
 
 Create packages for clear ownership, not as speculative placeholders. Do not add generic buckets

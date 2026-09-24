@@ -5,14 +5,9 @@ _templates_suffix: .jinja
 # Keep one common template tree.  Copier renders these patterns with the
 # selected answers before matching destination paths.
 _exclude:
-  - "{% if profile == 'minimal' %}src/{{ package_name }}/domain{% else %}__agentready_never__{% endif %}"
-  - "{% if profile == 'minimal' %}src/{{ package_name }}/application{% else %}__agentready_never__{% endif %}"
-  - "{% if profile != 'service' %}src/{{ package_name }}/adapters{% else %}__agentready_never__{% endif %}"
+  - "{% if profile == 'minimal' %}src/{{ package_name }}/modules{% else %}__agentready_never__{% endif %}"
+  - "{% if profile == 'minimal' %}src/{{ package_name }}/__main__.py{% else %}__agentready_never__{% endif %}"
+  - "{% if profile == 'minimal' %}src/{{ package_name }}/entrypoints{% else %}__agentready_never__{% endif %}"
   - "{% if profile == 'minimal' %}src/{{ package_name }}/bootstrap.py{% else %}__agentready_never__{% endif %}"
   - "{% if profile == 'minimal' %}src/{{ package_name }}/config.py{% else %}__agentready_never__{% endif %}"
-  - "{% if profile == 'minimal' %}src/{{ package_name }}/domain/__init__.py{% else %}__agentready_never__{% endif %}"
-  - "{% if profile == 'minimal' %}src/{{ package_name }}/domain/errors.py{% else %}__agentready_never__{% endif %}"
-  - "{% if profile == 'minimal' %}src/{{ package_name }}/application/__init__.py{% else %}__agentready_never__{% endif %}"
-  - "{% if profile == 'minimal' %}src/{{ package_name }}/application/service.py{% else %}__agentready_never__{% endif %}"
-  - "{% if profile != 'service' %}src/{{ package_name }}/adapters/__init__.py{% else %}__agentready_never__{% endif %}"
-  - "{% if profile != 'service' %}src/{{ package_name }}/adapters/console.py{% else %}__agentready_never__{% endif %}"
+  - "{% if profile != 'service' %}src/{{ package_name }}/modules/greeting/adapters{% else %}__agentready_never__{% endif %}"

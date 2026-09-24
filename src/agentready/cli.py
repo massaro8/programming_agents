@@ -34,6 +34,11 @@ def build_parser() -> argparse.ArgumentParser:
         default=DEFAULT_PROFILE,
         help="project structure profile (default: minimal)",
     )
+    init_parser.add_argument(
+        "--bootstrap",
+        action="store_true",
+        help="prepare and validate the generated project with uv",
+    )
     doctor_parser = subparsers.add_parser("doctor", help="inspect a repository")
     doctor_parser.add_argument("path", nargs="?", type=Path, default=Path("."))
     doctor_parser.add_argument("--format", choices=("human", "json"), default="human")
@@ -51,6 +56,14 @@ def main(argv: Sequence[str] | None = None) -> int:
         except (GeneratorError, TypeError) as exc:
             print(f"error: {exc}", file=sys.stderr)
             return 1
+        if args.bootstrap:
+            from agentready.bootstrap import BootstrapError, bootstrap_project
+
+            try:
+                bootstrap_project(args.target)
+            except BootstrapError as exc:
+                print(f"error: {exc}", file=sys.stderr)
+                return 1
         print(f"Created project at {args.target}")
         return 0
     if args.command == "doctor":

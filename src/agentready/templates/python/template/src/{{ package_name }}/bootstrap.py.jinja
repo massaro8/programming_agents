@@ -1,9 +1,9 @@
 {% if profile == "service" -%}
 """Composition root for the service profile."""
 
-from {{ package_name }}.adapters.console import ConsoleAdapter
-from {{ package_name }}.application.service import GreetingService
 from {{ package_name }}.config import Config
+from {{ package_name }}.modules.greeting.adapters.console import ConsoleAdapter
+from {{ package_name }}.modules.greeting.application.service import GreetingService
 
 
 def build_service() -> GreetingService:
@@ -20,8 +20,8 @@ def build_console() -> ConsoleAdapter:
 {% else -%}
 """Composition root for the application profile."""
 
-from {{ package_name }}.application.service import GreetingService
 from {{ package_name }}.config import Config
+from {{ package_name }}.modules.greeting.application.service import GreetingService
 
 
 def build_service() -> GreetingService:

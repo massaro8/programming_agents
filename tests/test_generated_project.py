@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import re
 import shutil
 import subprocess
 import tomllib
@@ -14,10 +15,7 @@ from agentready.core import ArtifactOwnership, OwnershipClass, ProjectPath
 ROOT = Path(__file__).resolve().parents[1]
 EXPECTED_COMMANDS = [
     "uv sync --all-groups",
-    "uv run ruff format --check .",
-    "uv run ruff check .",
-    "uv run mypy src",
-    "uv run pytest",
+    "uv run python scripts/project.py verify",
 ]
 
 
@@ -86,26 +84,50 @@ def test_qualify_independent_generated_project(tmp_path: Path, profile: str) -> 
         "docs/work/templates/documentation.md",
         "docs/work/templates/security.md",
         "scripts/work_registry.py",
+        "scripts/project.py",
         "docs/adr/0000-template.md",
         "docs/agent/index.md",
         "docs/agent/standards/python.md",
         "docs/agent/standards/architecture.md",
+        "docs/agent/standards/module-placement.md",
         "docs/agent/standards/testing.md",
         "docs/agent/standards/dependencies.md",
         "docs/agent/standards/documentation.md",
         "docs/agent/standards/security.md",
+        "docs/agent/standards/context-efficiency.md",
+        "scripts/architecture_check.py",
+        "scripts/generate_codebase_map.py",
         "docs/agent/workflows/feature.md",
         "docs/agent/workflows/bugfix.md",
         "docs/agent/workflows/refactor.md",
         "docs/agent/workflows/maintenance.md",
         "docs/agent/workflows/documentation.md",
         "docs/agent/workflows/security.md",
+        "docs/agent/workflows/repo-explore.md",
+        "docs/agent/workflows/module-placement.md",
+        ".agents/skills/repo-explore/SKILL.md",
+        ".agents/skills/module-placement/SKILL.md",
+        ".agents/skills/feature-builder/SKILL.md",
+        ".agents/skills/bug-investigation/SKILL.md",
+        ".agents/skills/refactoring/SKILL.md",
+        ".agents/skills/maintenance/SKILL.md",
+        ".agents/skills/documentation/SKILL.md",
+        ".agents/skills/security-review/SKILL.md",
+        ".claude/skills/repo-explore/SKILL.md",
+        ".claude/skills/module-placement/SKILL.md",
+        ".claude/skills/feature-builder/SKILL.md",
+        ".claude/skills/bug-investigation/SKILL.md",
+        ".claude/skills/refactoring/SKILL.md",
+        ".claude/skills/maintenance/SKILL.md",
+        ".claude/skills/documentation/SKILL.md",
+        ".claude/skills/security-review/SKILL.md",
     }
     assert ownership["generated"] == {
         "CLAUDE.md",
         ".agentready/manifest.toml",
         "docs/work/index.md",
         "docs/changelog/index.md",
+        "docs/generated/CODEBASE_MAP.md",
     }
     assert profile == "service" or not any("adapters/" in path for path in first_files)
     if profile == "minimal":
@@ -114,10 +136,16 @@ def test_qualify_independent_generated_project(tmp_path: Path, profile: str) -> 
             for path in first_files
         )
     else:
-        assert any("/application/service.py" in path for path in first_files)
-        assert any("/domain/errors.py" in path for path in first_files)
+        assert any("/modules/greeting/application/service.py" in path for path in first_files)
+        assert any("/modules/greeting/domain/errors.py" in path for path in first_files)
+        assert (first_project / "src/demo_agentready/__main__.py").exists()
+        assert not any(
+            f"src/demo_agentready/{name}/" in path
+            for name in ("application", "domain", "adapters")
+            for path in first_files
+        )
     if profile == "service":
-        assert any("/adapters/console.py" in path for path in first_files)
+        assert any("/modules/greeting/adapters/console.py" in path for path in first_files)
     assert set().union(*ownership.values()) == set(first_files)
     assert sum(map(len, ownership.values())) == len(set().union(*ownership.values()))
     ownership_classes = {
@@ -148,6 +176,55 @@ def test_qualify_independent_generated_project(tmp_path: Path, profile: str) -> 
     agents = (first_project / "AGENTS.md").read_text()
     assert len(agents) < 2_000
     assert "docs/agent/index.md" in agents and "docs/work/" in agents
+    assert "context-efficiency.md" in agents
+    assert (
+        "task/work item -> AGENTS.md"
+        in (first_project / "docs/agent/standards/context-efficiency.md").read_text()
+    )
+    assert "search" in (first_project / "docs/agent/standards/context-efficiency.md").read_text()
+    assert (
+        "whole repository"
+        in (first_project / "docs/agent/standards/context-efficiency.md").read_text()
+    )
+    skill_names = {
+        "repo-explore",
+        "module-placement",
+        "feature-builder",
+        "bug-investigation",
+        "refactoring",
+        "maintenance",
+        "documentation",
+        "security-review",
+    }
+    for skill_name in skill_names:
+        codex_path = Path(".agents/skills") / skill_name / "SKILL.md"
+        claude_path = Path(".claude/skills") / skill_name / "SKILL.md"
+        codex_skill = (first_project / codex_path).read_text()
+        claude_skill = (first_project / claude_path).read_text()
+        assert codex_skill == claude_skill
+        assert len(codex_skill.splitlines()) < 15
+        assert codex_skill.startswith("---\nname: ")
+        frontmatter, body = codex_skill.split("---\n", 2)[1:]
+        assert f"name: {skill_name}" in frontmatter
+        assert "description:" in frontmatter
+        assert "Input:" in body and "Done when" in body
+        assert "docs/agent/workflows/" in body
+        for target in re.findall(r"\]\(([^)]+)\)", body):
+            assert (first_project / codex_path).parent.joinpath(target).resolve().is_file()
+    index = (first_project / "docs/agent/index.md").read_text()
+    for skill_name in skill_names:
+        assert f"`{skill_name}`" in index
+    for fallback in (
+        "repo-explore",
+        "module-placement",
+        "feature",
+        "bugfix",
+        "refactor",
+        "maintenance",
+        "documentation",
+        "security",
+    ):
+        assert f"workflows/{fallback}.md" in index
     assert (
         first_project / "CLAUDE.md"
     ).read_text().strip() == "See [AGENTS.md](AGENTS.md) for the canonical project guidance."
@@ -170,6 +247,12 @@ def test_qualify_independent_generated_project(tmp_path: Path, profile: str) -> 
     run([uv, "build"], first_project, project_env)
     run(
         [uv, "run", "python", "scripts/work_registry.py", "check"],
+        first_project,
+        project_env,
+    )
+    run([uv, "run", "python", "scripts/architecture_check.py"], first_project, project_env)
+    run(
+        [uv, "run", "python", "scripts/generate_codebase_map.py", "--check"],
         first_project,
         project_env,
     )

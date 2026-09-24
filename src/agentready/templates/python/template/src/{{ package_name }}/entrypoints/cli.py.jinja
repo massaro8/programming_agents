@@ -1,0 +1,13 @@
+"""Small console entrypoint."""
+
+import argparse
+
+from {{ package_name }}.main import greet
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Print a greeting.")
+    parser.add_argument("name", nargs="?", default="world")
+    arguments = parser.parse_args()
+    print(greet(arguments.name))
+    return 0
