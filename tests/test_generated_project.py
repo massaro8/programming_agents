@@ -85,6 +85,11 @@ def test_qualify_independent_generated_project(tmp_path: Path, profile: str) -> 
         "docs/work/templates/security.md",
         "scripts/work_registry.py",
         "scripts/project.py",
+        "scripts/module_knowledge.py",
+        "scripts/context.py",
+        "scripts/status.py",
+        "scripts/package_check.py",
+        "scripts/command_check.py",
         "docs/adr/0000-template.md",
         "docs/agent/index.md",
         "docs/agent/standards/python.md",
@@ -96,6 +101,9 @@ def test_qualify_independent_generated_project(tmp_path: Path, profile: str) -> 
         "docs/agent/standards/security.md",
         "docs/agent/standards/context-efficiency.md",
         "scripts/architecture_check.py",
+        "scripts/skill_routes.py",
+        "scripts/skill_check.py",
+        "tests/fixtures/skill_routing.json",
         "scripts/generate_codebase_map.py",
         "docs/agent/workflows/feature.md",
         "docs/agent/workflows/bugfix.md",
@@ -113,6 +121,13 @@ def test_qualify_independent_generated_project(tmp_path: Path, profile: str) -> 
         ".agents/skills/maintenance/SKILL.md",
         ".agents/skills/documentation/SKILL.md",
         ".agents/skills/security-review/SKILL.md",
+    }
+    assert ownership["generated"] == {
+        "CLAUDE.md",
+        ".agentready/manifest.toml",
+        "docs/work/index.md",
+        "docs/changelog/index.md",
+        "docs/generated/CODEBASE_MAP.md",
         ".claude/skills/repo-explore/SKILL.md",
         ".claude/skills/module-placement/SKILL.md",
         ".claude/skills/feature-builder/SKILL.md",
@@ -121,13 +136,6 @@ def test_qualify_independent_generated_project(tmp_path: Path, profile: str) -> 
         ".claude/skills/maintenance/SKILL.md",
         ".claude/skills/documentation/SKILL.md",
         ".claude/skills/security-review/SKILL.md",
-    }
-    assert ownership["generated"] == {
-        "CLAUDE.md",
-        ".agentready/manifest.toml",
-        "docs/work/index.md",
-        "docs/changelog/index.md",
-        "docs/generated/CODEBASE_MAP.md",
     }
     assert profile == "service" or not any("adapters/" in path for path in first_files)
     if profile == "minimal":
@@ -202,12 +210,12 @@ def test_qualify_independent_generated_project(tmp_path: Path, profile: str) -> 
         codex_skill = (first_project / codex_path).read_text()
         claude_skill = (first_project / claude_path).read_text()
         assert codex_skill == claude_skill
-        assert len(codex_skill.splitlines()) < 15
+        assert 20 <= len(codex_skill.splitlines()) <= 80
         assert codex_skill.startswith("---\nname: ")
         frontmatter, body = codex_skill.split("---\n", 2)[1:]
         assert f"name: {skill_name}" in frontmatter
         assert "description:" in frontmatter
-        assert "Input:" in body and "Done when" in body
+        assert "## Inputs and preconditions" in body and "## Evidence of completion" in body
         assert "docs/agent/workflows/" in body
         for target in re.findall(r"\]\(([^)]+)\)", body):
             assert (first_project / codex_path).parent.joinpath(target).resolve().is_file()
@@ -251,6 +259,7 @@ def test_qualify_independent_generated_project(tmp_path: Path, profile: str) -> 
         project_env,
     )
     run([uv, "run", "python", "scripts/architecture_check.py"], first_project, project_env)
+    run([uv, "run", "python", "scripts/skill_check.py"], first_project, project_env)
     run(
         [uv, "run", "python", "scripts/generate_codebase_map.py", "--check"],
         first_project,

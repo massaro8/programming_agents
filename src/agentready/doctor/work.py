@@ -119,6 +119,15 @@ def _validate_done(work: _Work) -> None:
         or migration.startswith("<")
     ):
         raise ValueError(f"DONE item {work.work_id} requires breaking and migration fields")
+    if _field(changelog, "Breaking") == "YES" and migration.strip().upper() in {
+        "NOT_REQUIRED",
+        "NONE",
+        "TODO",
+        "TBD",
+        "N/A",
+        "NA",
+    }:
+        raise ValueError(f"DONE breaking item {work.work_id} requires migration guidance")
     for name in ("README", "ARCHITECTURE", "ADR", "OTHER"):
         value = _field(impact_section, name)
         allowed = {"UPDATED", "NOT_REQUIRED"} if name != "OTHER" else {"UPDATED", "NONE"}

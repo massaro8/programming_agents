@@ -1,0 +1,108 @@
+#!/usr/bin/env python3
+"""Build and smoke-test the project wheel in a temporary environment."""
+
+from __future__ import annotations
+
+import argparse
+import os
+import subprocess
+import sys
+import tempfile
+from pathlib import Path
+
+
+def _run(stage: str, command: list[str], root: Path) -> bool:
+    try:
+        result = subprocess.run(command, cwd=root, check=False)
+    except OSError as exc:
+        print(
+            f"package check failed during {stage}: {' '.join(command)} ({exc})",
+            file=sys.stderr,
+        )
+        return False
+    if result.returncode:
+        print(
+            f"package check failed during {stage} (exit {result.returncode}): {' '.join(command)}",
+            file=sys.stderr,
+        )
+        return False
+    return True
+
+
+def check(root: Path, uv: str) -> int:
+    """Build and smoke-test this generated project without network access."""
+    root = root.resolve()
+    try:
+        packages = list((root / "src").iterdir())
+        if len(packages) != 1 or not packages[0].is_dir():
+            raise ValueError("expected exactly one package directory under src")
+        package_name = packages[0].name
+        has_cli = (packages[0] / "__main__.py").is_file()
+    except (OSError, ValueError) as exc:
+        print(f"package check failed during project inspection: {exc}", file=sys.stderr)
+        return 1
+
+    with tempfile.TemporaryDirectory(prefix="agentready-package-check-") as temporary:
+        work = Path(temporary)
+        wheel_dir = work / "wheel"
+        wheel_dir.mkdir()
+        if not _run(
+            "wheel build",
+            [uv, "build", "--wheel", "--offline", "--out-dir", os.fspath(wheel_dir)],
+            root,
+        ):
+            return 1
+        wheels = list(wheel_dir.glob("*.whl"))
+        if len(wheels) != 1:
+            print(
+                "package check failed during wheel build: expected exactly one wheel",
+                file=sys.stderr,
+            )
+            return 1
+
+        environment = work / "venv"
+        if not _run(
+            "environment creation", [uv, "venv", "--offline", os.fspath(environment)], root
+        ):
+            return 1
+        python = environment / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
+        if not _run(
+            "wheel installation",
+            [
+                uv,
+                "pip",
+                "install",
+                "--offline",
+                "--python",
+                os.fspath(python),
+                os.fspath(wheels[0]),
+            ],
+            root,
+        ):
+            return 1
+        if not _run(
+            "installed package import",
+            [os.fspath(python), "-c", f"import {package_name}"],
+            root,
+        ):
+            return 1
+        if has_cli and not _run(
+            "CLI help",
+            [os.fspath(python), "-m", package_name, "--help"],
+            root,
+        ):
+            return 1
+
+    print("Package check passed.")
+    return 0
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--uv", default="uv", help="uv executable (default: uv on PATH)")
+    arguments = parser.parse_args()
+    return check(Path(__file__).resolve().parents[1], arguments.uv)
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

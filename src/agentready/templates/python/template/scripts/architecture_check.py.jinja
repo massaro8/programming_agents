@@ -11,47 +11,237 @@ PROFILE = "{{ profile }}"
 ROOT = Path(__file__).resolve().parents[1]
 PACKAGE_ROOT = ROOT / "src" / PACKAGE
 ROOT_MODULES = {"__init__", "main", "__main__", "bootstrap", "config"}
+ROOT_BUCKETS = {"modules", "entrypoints", "platform", "shared"}
 FORBIDDEN_ROOT_BUCKETS = {"services", "models", "repositories", "utils", "helpers"}
+LAYERS = {"domain", "application", "adapters"}
 
 
-def imported_modules(tree: ast.Module, current: tuple[str, ...]) -> set[tuple[str, ...]]:
-    found: set[tuple[str, ...]] = set()
+def _local_target(module: str | None, level: int, current: tuple[str, ...]) -> tuple[str, ...]:
+    if level:
+        base = current[: len(current) - level + 1]
+        suffix = tuple(module.split(".")) if module else ()
+        return (*base, *suffix)
+    parts = tuple((module or "").split("."))
+    return parts[1:] if parts and parts[0] == PACKAGE else ()
+
+
+def imported_modules(
+    tree: ast.Module, current: tuple[str, ...]
+) -> list[tuple[tuple[str, ...], str | None, bool, bool]]:
+    found: list[tuple[tuple[str, ...], str | None, bool, bool]] = []
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
             for alias in node.names:
                 parts = tuple(alias.name.split("."))
                 if parts and parts[0] == PACKAGE:
-                    found.add(parts[1:])
+                    found.append((parts[1:], None, False, False))
+                else:
+                    found.append((parts, None, False, False))
         elif isinstance(node, ast.ImportFrom):
+            package_import = False
             if node.level:
-                base = current[: len(current) - node.level + 1]
-                parts = (*base, *(node.module.split(".") if node.module else ()))
+                target = _local_target(node.module, node.level, current)
+                package_import = bool(node.level)
             else:
-                absolute = tuple((node.module or "").split("."))
-                if not absolute or absolute[0] != PACKAGE:
-                    continue
-                parts = absolute[1:]
-            if parts:
-                found.add(tuple(parts))
-            found.update((*parts, alias.name) for alias in node.names if alias.name != "*")
+                parts = tuple((node.module or "").split("."))
+                package_import = bool(parts and parts[0] == PACKAGE)
+                target = parts[1:] if package_import else ()
+                if not target and parts and not package_import:
+                    found.append((parts, None, False, False))
+            if target or package_import:
+                if target and (not node.names or all(alias.name == "*" for alias in node.names)):
+                    found.append((target, None, False, False))
+                found.extend(
+                    (
+                        (*target, alias.name),
+                        alias.name,
+                        len(target) == 2 and alias.name in LAYERS,
+                        len(target) == 3 and target[0] == "modules" and target[2] == "application",
+                    )
+                    for alias in node.names
+                    if alias.name != "*"
+                )
     return found
 
 
-def _outer_dependency(target: tuple[str, ...], layer: str) -> bool:
-    if not target:
+def _location(parts: tuple[str, ...]) -> tuple[str, str] | None:
+    if len(parts) >= 3 and parts[0] == "modules" and parts[2] in LAYERS:
+        return parts[1], parts[2]
+    if parts and parts[0] in {"entrypoints", "platform", "shared"}:
+        return "", parts[0]
+    return None
+
+
+def _application_export(target: tuple[str, ...], symbol: str) -> bool:
+    if len(target) != 3 or target[0] != "modules" or target[2] != "application":
         return False
-    if target[0] in {"entrypoints", "bootstrap", "config", "platform"}:
-        return True
-    if len(target) < 3 or target[0] != "modules":
+    init_path = PACKAGE_ROOT.joinpath(*target, "__init__.py")
+    if not init_path.is_file():
         return False
-    forbidden = {"adapters"} if layer == "application" else {"application", "adapters"}
-    return target[2] in forbidden
+    try:
+        tree = ast.parse(init_path.read_text(encoding="utf-8"))
+    except (OSError, SyntaxError):
+        return False
+    for node in tree.body:
+        if isinstance(node, (ast.Assign, ast.AnnAssign)):
+            targets = node.targets if isinstance(node, ast.Assign) else [node.target]
+            if any(isinstance(item, ast.Name) and item.id == "__all__" for item in targets):
+                value = node.value
+                if isinstance(value, (ast.List, ast.Tuple)):
+                    return all(
+                        isinstance(item, ast.Constant) and isinstance(item.value, str)
+                        for item in value.elts
+                    ) and any(
+                        item.value == symbol
+                        for item in value.elts
+                        if isinstance(item, ast.Constant)
+                    )
+    return False
+
+
+def _is_stdlib(target: tuple[str, ...]) -> bool:
+    return bool(target) and target[0] in sys.stdlib_module_names
+
+
+def _reads_environment(tree: ast.Module) -> bool:
+    os_aliases = {"os"}
+    environ_names = {"environ"}
+    getenv_names = {"getenv"}
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            os_aliases.update(alias.asname or "os" for alias in node.names if alias.name == "os")
+        elif isinstance(node, ast.ImportFrom) and node.module == "os":
+            for alias in node.names:
+                if alias.name == "environ":
+                    environ_names.add(alias.asname or alias.name)
+                elif alias.name == "getenv":
+                    getenv_names.add(alias.asname or alias.name)
+    for node in ast.walk(tree):
+        if (
+            isinstance(node, ast.Attribute)
+            and node.attr == "environ"
+            and isinstance(node.value, ast.Name)
+            and node.value.id in os_aliases
+        ):
+            return True
+        if (
+            isinstance(node, ast.Subscript)
+            and isinstance(node.value, ast.Name)
+            and node.value.id in environ_names
+        ):
+            return True
+        if isinstance(node, ast.Call):
+            function = node.func
+            if isinstance(function, ast.Name) and function.id in getenv_names:
+                return True
+            if (
+                isinstance(function, ast.Attribute)
+                and function.attr == "getenv"
+                and isinstance(function.value, ast.Name)
+                and function.value.id in os_aliases
+            ):
+                return True
+            if (
+                isinstance(function, ast.Attribute)
+                and function.attr == "get"
+                and isinstance(function.value, ast.Name)
+                and function.value.id in environ_names
+            ):
+                return True
+    return False
+
+
+def _violation(
+    source: tuple[str, ...],
+    target: tuple[str, ...],
+    symbol: str | None,
+    layer_alias: bool,
+    public_application_import: bool,
+) -> str | None:
+    source_location = _location(source)
+    target_location = _location(target)
+    source_module, source_layer = source_location or ("", "root")
+    target_module, target_layer = target_location or ("", "root")
+
+    if layer_alias and source_layer in {"adapters", "entrypoints"}:
+        return "imports must name a layer directly, not through its module package"
+
+    if source_layer == "shared":
+        if target_location and target_layer == "shared":
+            return None
+        if _is_stdlib(target):
+            return None
+        return "shared must depend only on itself and the standard library"
+    if source_layer == "platform":
+        if target and target[0] in {"entrypoints", "bootstrap", "config"}:
+            return "platform must not depend on entrypoints or composition files"
+        if target_location and target_layer in LAYERS:
+            return "platform must not depend on business modules"
+        return None
+    if source_layer == "domain":
+        if target_location and target_layer == "shared":
+            return None
+        if target_location and target_module == source_module and target_layer == "domain":
+            return None
+        if _is_stdlib(target):
+            return None
+        return (
+            "domain must not depend on anything outside its own domain, "
+            "shared, and the standard library"
+        )
+    if source_layer == "application":
+        if target_location and target_layer == "shared":
+            return None
+        if (
+            target_location
+            and target_module == source_module
+            and target_layer in {"domain", "application"}
+        ):
+            return None
+        if target_location and target_module != source_module and target_layer == "application":
+            if symbol and public_application_import and _application_export(target[:3], symbol):
+                return None
+            return "cross module application imports must use an exported application symbol"
+        if _is_stdlib(target):
+            return None
+        return "application must not depend on adapters or outer layers"
+    if source_layer == "adapters":
+        if target_location and target_layer in LAYERS and target_module == source_module:
+            return None
+        if target_location and target_layer in {"shared", "platform"}:
+            return None
+        if target_location and target_module != source_module and target_layer in LAYERS:
+            if (
+                target_layer == "application"
+                and symbol
+                and public_application_import
+                and _application_export(target[:3], symbol)
+            ):
+                return None
+            return "adapters must not depend on another module's internals"
+        if target and target[0] in {"entrypoints", "bootstrap", "config"}:
+            return "adapters must not depend on entrypoints or bootstrap/configuration"
+        return None
+    if source_layer == "entrypoints":
+        if target_location and target_layer in {"domain", "adapters"}:
+            return "entrypoints must depend on public application surfaces, not domain or adapters"
+        if target_location and target_layer == "application" and target_module:
+            if symbol and public_application_import and _application_export(target[:3], symbol):
+                return None
+            return "entrypoints must use exported application symbols"
+    return None
 
 
 def check() -> list[str]:
     if PROFILE == "minimal":
         return []
     errors: list[str] = []
+    for child in sorted(PACKAGE_ROOT.iterdir()):
+        if child.is_dir() and child.name not in ROOT_BUCKETS and child.name != "__pycache__":
+            errors.append(
+                f"{child.relative_to(ROOT)}: unexpected package-root directory; "
+                "use modules/<capability>/ or an approved package area"
+            )
     for path in sorted(PACKAGE_ROOT.rglob("*.py")):
         relative = path.relative_to(PACKAGE_ROOT)
         parts = relative.with_suffix("").parts
@@ -60,22 +250,22 @@ def check() -> list[str]:
                 f"{relative}: package-root implementation is not allowed; "
                 "place it under modules/<capability>/"
             )
-        layer = (
-            parts[2]
-            if len(parts) >= 4 and parts[0] == "modules" and parts[2] in {"domain", "application"}
-            else ""
-        )
-        if layer not in {"domain", "application"}:
-            continue
         try:
             tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(relative))
-        except SyntaxError as exc:
+        except (OSError, SyntaxError) as exc:
             errors.append(f"{relative}: cannot parse imports: {exc}")
             continue
         current = tuple(parts[:-1])
-        for target in imported_modules(tree, current):
-            if _outer_dependency(target, layer):
-                errors.append(f"{relative}: {layer} must not depend on {'.'.join(target)}")
+        source = parts[:-1]
+        source_location = _location(source)
+        if source_location and source_location[1] == "application" and _reads_environment(tree):
+            errors.append(f"{relative}: application must not read process environment directly")
+        for target, symbol, layer_alias, public_application_import in imported_modules(
+            tree, current
+        ):
+            problem = _violation(source, target, symbol, layer_alias, public_application_import)
+            if problem:
+                errors.append(f"{relative}: {problem}: {'.'.join(target)}")
     for bucket in sorted(FORBIDDEN_ROOT_BUCKETS):
         candidate = PACKAGE_ROOT / bucket
         if candidate.exists():

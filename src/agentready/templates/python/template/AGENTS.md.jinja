@@ -2,13 +2,12 @@
 
 Purpose: maintain an independent Python project using the **{{ profile }}** profile.
 
-Quick verification: `python scripts/project.py check`.
-Full verification: `python scripts/project.py verify`.
-Prepare the environment with `python scripts/project.py bootstrap`.
+Prepare with `python scripts/project.py bootstrap`; check with `python scripts/project.py check`; build and check with `python scripts/project.py verify`.
+Use `python scripts/project.py context --next` for the next READY item, `python scripts/project.py status` for read-only health, `python scripts/project.py sync` for generated indexes/map, and `python scripts/project.py package-check` for offline installed-wheel smoke.
 
 Search before reading: find the relevant symbol, path, and neighboring tests first; open only those files and expand context when evidence requires it.
 
-Follow [docs/agent/index.md](docs/agent/index.md) for work-type routing and [the context-efficiency standard](docs/agent/standards/context-efficiency.md) for context selection. Native skills, when supported, are concise adapters to canonical workflow files; otherwise follow the fallback paths in the index directly.
+Follow [docs/agent/index.md](docs/agent/index.md) for work-type routing and [the context-efficiency standard](docs/agent/standards/context-efficiency.md) for context selection.
 
 {% if profile == "minimal" -%}
 Architecture invariants: keep the `src/` layout direct and do not add layers until a concrete requirement needs them. Keep dependencies minimal and do not add a runtime dependency on AgentReady.
@@ -20,10 +19,5 @@ Architecture invariants: place capabilities under `modules/<capability>/`; keep 
 
 Minimum coherent diff: make the smallest change that satisfies the acceptance criteria and avoid speculative directories, abstractions, or refactors.
 
-Verification: run the documented commands relevant to the change, then the full baseline before merging.
-
-Definition of done: behavior is tested, formatting/lint/types/tests pass, and the diff is focused.
-
-Project work is tracked under `docs/work/`. Use the skill matching the work type when supported; `docs/agent/index.md` gives the fallback workflow for every type and capability.
-
 For implementation work, select one READY item, use its Type to choose the workflow in `docs/agent/index.md`, read its normative specification and only relevant standards, preserve requirements, update the implementation record and documentation impact, then sync the registry and changelog. If blocked, record why, mark BLOCKED, and stop.
+Human-owned work items live in `docs/work/`.

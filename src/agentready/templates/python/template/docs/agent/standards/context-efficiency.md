@@ -33,3 +33,7 @@ Pass a compact handoff with exactly these headings:
 Do not pass the conversation transcript unless essential. When compacting context, retain only the
 objective, acceptance criteria, frozen decisions, relevant architecture boundary, changed files,
 validation state, and unresolved blockers or risks. Drop verbose exploration history.
+
+Use the canonical handoff whenever task state crosses an isolated agent or context boundary and
+the receiver needs implementation or review state. An explorer may return a shorter evidence and
+localization summary when that is all the receiver needs.

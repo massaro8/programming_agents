@@ -8,7 +8,7 @@ intentionally free of speculative layers. When multiple unrelated capabilities b
 accumulate, do not create global `services/`, `models/`, `repositories/`, or `utils/` buckets;
 consider migrating to the module structure described in `docs/agent/standards/module-placement.md`.
 {% else %}The `greeting` capability lives under `modules/greeting/`; domain and application logic
-depend inward, while the service profile additionally places its console adapter in that module.
+depend inward{% if profile == "service" %}, with its console adapter in that module{% endif %}.
 `bootstrap.py` composes the service, and `entrypoints/cli.py` is a thin driver. The structure is
 framework-neutral and deliberately tiny.
 

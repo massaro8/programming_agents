@@ -45,8 +45,13 @@ def validate(root: Path, package: str, profile: str, text: str | None) -> bool:
             return False
         if adapter_root.is_dir():
             adapters.update(
-                f"modules.{module}.adapters.{path.stem}"
-                for path in adapter_root.glob("*.py")
-                if path.name != "__init__.py" and not path.is_symlink()
+                f"modules.{module}.adapters."
+                + ".".join(path.relative_to(adapter_root).with_suffix("").parts)
+                for path in adapter_root.rglob("*.py")
+                if path.name != "__init__.py"
+                and not path.is_symlink()
+                and not any(
+                    parent.is_symlink() for parent in path.parents if adapter_root in parent.parents
+                )
             )
     return listed_adapters == adapters

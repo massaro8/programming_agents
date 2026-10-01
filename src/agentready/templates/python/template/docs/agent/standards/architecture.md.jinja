@@ -8,12 +8,51 @@ and `utils/` buckets; consider migrating to modules.
 {% elif profile == "application" -%}
 Preserve entrypoint/bootstrap → module application → module domain. Domain must not import
 application code, configuration, frameworks, or infrastructure. Bootstrap is the composition
-root; configuration is read at that boundary and passed inward explicitly.
+root; configuration is read and validated there, then passed inward explicitly. Load settings once
+at this outer boundary; do not read process environment throughout domain, application, or adapters.
 {% else -%}
 Preserve entrypoint/bootstrap → module adapters/application → module domain. Adapters may depend on
 application or domain contracts, never the reverse. Bootstrap selects and wires concrete adapters;
-keep framework and side-effect details at those outer boundaries.
+keep framework and side-effect details at those outer boundaries. Load and validate configuration
+there, then inject it inward; do not scatter process-environment reads through modules.
 {% endif %}
 
 Create packages for clear ownership, not as speculative placeholders. Do not add generic buckets
 such as `services`, `models`, `repositories`, `utils`, `helpers`, or `data`.
+
+## Boundaries and contracts
+
+Keep HTTP, filesystem, database, queue, SDK, and vendor I/O behind the owning capability's adapter
+or outer boundary. Operations that can block need finite bounds when supported; network calls
+always need a finite timeout. Retry only plausibly transient failures when the operation is
+idempotent or explicitly made safe, with one clear retry owner. Never retry at multiple layers.
+Resources such as files, clients, connections, transactions, and streams need explicit ownership
+and deterministic cleanup.
+
+Translate vendor failures into a stable inward-facing error when the meaning matters, preserving
+the cause (`raise ApplicationFacingError(...) from exc`). Do not wrap exceptions just for
+uniformity. Domain errors represent business rules; entrypoints own final user/protocol rendering
+and status mapping. Catch only to recover, translate, or add useful context. Never broadly catch
+and ignore, mechanically log and rethrow at every layer, or expose vendor internals by accident.
+Libraries and modules must not configure logging globally. Report failures at the user-facing
+boundary, log only safe operational context, and avoid duplicate failure logs or secrets and raw
+sensitive payloads.
+
+{% if profile != "minimal" -%}
+Configuration belongs to `config.py` and is composed in `bootstrap.py`: document environment
+variable names, validate required settings before composing services, and inject typed settings
+inward. Do not provide real secret defaults, commit secrets or machine-specific configuration, or
+log credentials. Use the simplest justified loader; no configuration framework is required.
+
+When capability modules call one another, use an explicit public
+application-facing contract. Export that contract from the owning capability's
+`application/__init__.py`; other modules must not import its adapters, private domain
+implementation, or internal helpers. Start with direct synchronous calls. Events need a real
+asynchronous, lifecycle, or integration requirement; `shared/` is not a general cross-module
+channel.
+{% endif %}
+
+Public contracts include documented CLI behavior and options, documented exit behavior, exported
+APIs, persisted formats and schemas, HTTP/event contracts, and documented integrations. Before
+changing one, evaluate whether it is breaking, what migration or compatibility path is needed, and
+the README, tests, and user documentation impact.

@@ -31,3 +31,7 @@ consider migrating to this module structure instead of adding global buckets.
 
 Mirror package boundaries in `tests/` when useful (for example, `tests/modules/<capability>/`).
 Always keep tests focused on observable behavior and run the checks listed in `README.md`.
+For each capability module, maintain one project-owned `docs/modules/<capability>.md` card with its
+responsibility, public application surface, external boundaries, and tests. Use
+`python scripts/module_knowledge.py new <capability> --responsibility "..."` to create a module
+without speculative layers; update its card as its actual boundaries become known.

@@ -1,0 +1,162 @@
+"""Create and validate project-owned capability knowledge cards (stdlib only)."""
+
+from __future__ import annotations
+
+import argparse
+import keyword
+import re
+import subprocess
+import sys
+from pathlib import Path
+
+MODULE_NAME = re.compile(r"^[a-z][a-z0-9_]*$")
+FIELDS = (
+    "Responsibility",
+    "Public application surface",
+    "External boundaries",
+    "Tests",
+)
+
+
+def _valid_name(name: str) -> bool:
+    return bool(MODULE_NAME.fullmatch(name)) and not keyword.iskeyword(name)
+
+
+def _modules(root: Path) -> set[str]:
+    package = root / "src"
+    package_dirs = [path for path in package.iterdir() if path.is_dir()] if package.is_dir() else []
+    if len(package_dirs) != 1:
+        raise ValueError("expected exactly one package directory under src/")
+    modules_root = package_dirs[0] / "modules"
+    if not modules_root.is_dir():
+        return set()
+    return {
+        path.name
+        for path in modules_root.iterdir()
+        if path.is_dir() and not path.name.startswith((".", "__"))
+    }
+
+
+def _read_card(path: Path, expected_name: str) -> str:
+    if path.is_symlink() or not path.is_file():
+        raise ValueError(f"unsafe or missing module card: {path.relative_to(path.parents[2])}")
+    text = path.read_text(encoding="utf-8")
+    lines = text.splitlines()
+    if len(lines) != 5 or lines[0] != f"# {expected_name}":
+        raise ValueError(f"invalid module card format: {path}")
+    values: dict[str, str] = {}
+    for line, field in zip(lines[1:5], FIELDS, strict=True):
+        prefix = f"{field}: "
+        if not line.startswith(prefix):
+            raise ValueError(f"invalid {field} field in module card: {path}")
+        value = line[len(prefix) :].strip()
+        if not value or "\n" in value:
+            raise ValueError(f"empty or multiline {field} in module card: {path}")
+        values[field] = value
+    responsibility = values["Responsibility"]
+    if len(responsibility) < 12 or responsibility.lower() in {
+        "todo",
+        "tbd",
+        "module responsibility",
+        "responsibility to be defined",
+    }:
+        raise ValueError(f"module responsibility is not meaningful: {path}")
+    return responsibility
+
+
+def check(root: Path) -> dict[str, str]:
+    """Validate the one-card-per-module inventory and return responsibilities."""
+    modules = _modules(root)
+    cards_root = root / "docs" / "modules"
+    cards = sorted(cards_root.glob("*.md")) if cards_root.is_dir() else []
+    names: set[str] = set()
+    for card in cards:
+        name = card.stem
+        if not _valid_name(name):
+            raise ValueError(f"unsafe module card name: {card.name}")
+        if name in names:
+            raise ValueError(f"duplicate module card: {name}")
+        names.add(name)
+    missing = sorted(modules - names)
+    orphaned = sorted(names - modules)
+    if missing or orphaned:
+        details = []
+        if missing:
+            details.append(f"missing cards: {', '.join(missing)}")
+        if orphaned:
+            details.append(f"orphan cards: {', '.join(orphaned)}")
+        raise ValueError("; ".join(details))
+    return {name: _read_card(cards_root / f"{name}.md", name) for name in sorted(modules)}
+
+
+def new_module(root: Path, name: str, responsibility: str) -> None:
+    """Create an empty capability package and its required knowledge card."""
+    check(root)
+    responsibility = responsibility.strip()
+    if not _valid_name(name):
+        raise ValueError("module name must be safe snake_case and not a Python keyword")
+    if (
+        len(responsibility) < 12
+        or "\n" in responsibility
+        or "\r" in responsibility
+        or responsibility.lower() in {"todo", "tbd"}
+    ):
+        raise ValueError("provide a concise, meaningful responsibility")
+    modules_root = root / "src" / next(iter(_package_names(root))) / "modules"
+    module_dir = modules_root / name
+    card_path = root / "docs" / "modules" / f"{name}.md"
+    if module_dir.exists() or card_path.exists():
+        raise ValueError(f"module or card already exists: {name}")
+    module_dir.mkdir(parents=True)
+    (module_dir / "__init__.py").write_text("", encoding="utf-8")
+    card_path.parent.mkdir(parents=True, exist_ok=True)
+    card_path.write_text(
+        f"# {name}\n"
+        f"Responsibility: {responsibility}\n"
+        "Public application surface: Not documented.\n"
+        "External boundaries: Not documented.\n"
+        "Tests: Not documented.\n",
+        encoding="utf-8",
+    )
+    result = subprocess.run(
+        [sys.executable, str(root / "scripts" / "generate_codebase_map.py")],
+        cwd=root,
+        check=False,
+    )
+    if result.returncode:
+        raise RuntimeError("module was created but CODEBASE_MAP.md regeneration failed")
+
+
+def _package_names(root: Path) -> set[str]:
+    package = root / "src"
+    names = (
+        {path.name for path in package.iterdir() if path.is_dir()} if package.is_dir() else set()
+    )
+    if len(names) != 1:
+        raise ValueError("expected exactly one package directory under src/")
+    return names
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    commands = parser.add_subparsers(dest="command", required=True)
+    check_parser = commands.add_parser("check")
+    check_parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[1])
+    new_parser = commands.add_parser("new")
+    new_parser.add_argument("name")
+    new_parser.add_argument("--responsibility", required=True)
+    new_parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[1])
+    args = parser.parse_args(argv)
+    try:
+        if args.command == "check":
+            check(args.root)
+        else:
+            new_module(args.root, args.name, args.responsibility)
+    except (OSError, ValueError, RuntimeError) as exc:
+        print(str(exc), file=sys.stderr)
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

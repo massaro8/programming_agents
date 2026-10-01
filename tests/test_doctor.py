@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import os
+import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -77,6 +79,30 @@ def test_codebase_map_detects_new_module_without_executing_project_code(tmp_path
 
     assert "stale" in _finding(report, "repository.codebase_map").message
     assert _snapshot(root) == before
+
+
+def test_codebase_map_tracks_nested_adapters_without_executing_project_code(
+    tmp_path: Path,
+) -> None:
+    root = tmp_path / "demo_agentready"
+    generate_project(root, profile="service")
+    nested = root / "src/demo_agentready/modules/greeting/adapters/vendor"
+    nested.mkdir()
+    (nested / "client.py").write_text("VALUE = 1\n", encoding="utf-8")
+    assert _finding(inspect(root), "repository.codebase_map").status is FindingStatus.FAIL
+
+    result = subprocess.run(
+        [sys.executable, "scripts/generate_codebase_map.py"],
+        cwd=root,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "modules.greeting.adapters.vendor.client" in (
+        root / "docs/generated/CODEBASE_MAP.md"
+    ).read_text(encoding="utf-8")
+    assert _finding(inspect(root), "repository.codebase_map").status is FindingStatus.PASS
 
 
 def test_human_output_is_grouped_and_terminal(tmp_path: Path) -> None:

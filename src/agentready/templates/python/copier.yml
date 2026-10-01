@@ -11,3 +11,4 @@ _exclude:
   - "{% if profile == 'minimal' %}src/{{ package_name }}/bootstrap.py{% else %}__agentready_never__{% endif %}"
   - "{% if profile == 'minimal' %}src/{{ package_name }}/config.py{% else %}__agentready_never__{% endif %}"
   - "{% if profile != 'service' %}src/{{ package_name }}/modules/greeting/adapters{% else %}__agentready_never__{% endif %}"
+  - "{% if profile == 'minimal' %}docs/modules{% else %}__agentready_never__{% endif %}"

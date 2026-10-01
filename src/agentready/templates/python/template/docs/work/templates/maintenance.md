@@ -14,6 +14,10 @@ Status: BACKLOG
 ### Compatibility and risk constraints
 - <Constraint>
 
+### Public contract and compatibility
+<For dependency/tooling changes, identify affected public contracts and assess breaking change,
+migration or compatibility path, README/user documentation, and focused tests. Use NONE when not applicable.>
+
 ### Acceptance criteria
 - <Observable criterion>
 

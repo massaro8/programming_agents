@@ -3,7 +3,12 @@
 from __future__ import annotations
 
 import argparse
+import ast
+import sys
+import tomllib
 from pathlib import Path
+
+from module_knowledge import check as check_module_knowledge
 
 PACKAGE = "{{ package_name }}"
 PROFILE = "{{ profile }}"
@@ -11,53 +16,86 @@ ROOT = Path(__file__).resolve().parents[1]
 DESTINATION = ROOT / "docs" / "generated" / "CODEBASE_MAP.md"
 
 
+def _application_exports(path: Path) -> list[str]:
+    """Read an explicit __all__ declaration without importing project code."""
+    try:
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+    except (OSError, SyntaxError):
+        return []
+    for node in tree.body:
+        if isinstance(node, (ast.Assign, ast.AnnAssign)):
+            targets = node.targets if isinstance(node, ast.Assign) else [node.target]
+            if any(isinstance(target, ast.Name) and target.id == "__all__" for target in targets):
+                try:
+                    value = ast.literal_eval(node.value)
+                except (ValueError, TypeError):
+                    return []
+                if not isinstance(value, (list, tuple)) or not all(
+                    isinstance(item, str) for item in value
+                ):
+                    return []
+                return sorted(item for item in value if isinstance(item, str))
+    return []
+
+
 def render() -> str:
-    profile = PROFILE
+    responsibilities = check_module_knowledge(ROOT)
     package = ROOT / "src" / PACKAGE
+    lines = ["# Codebase Map", "", f"Profile: `{PROFILE}`", "", "## Entrypoints", ""]
+    try:
+        project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+    except (OSError, tomllib.TOMLDecodeError):
+        project = {}
+    scripts = project.get("project", {}).get("scripts", {})
+    for name, target in sorted(scripts.items()):
+        lines.append(f"- Console script `{name}`: `{target}`")
+    if (package / "__main__.py").is_file():
+        lines.append(f"- Module runner: `python -m {PACKAGE}`")
+    if not scripts and not (package / "__main__.py").is_file():
+        lines.append("- No declared command entrypoints.")
+
     modules_root = package / "modules"
     modules = (
         sorted(
-            path
-            for path in modules_root.iterdir()
-            if path.is_dir() and not path.name.startswith((".", "__"))
+            (
+                path
+                for path in modules_root.iterdir()
+                if path.is_dir() and not path.name.startswith((".", "__"))
+            ),
+            key=lambda path: path.name,
         )
-        if modules_root.exists()
+        if modules_root.is_dir()
         else []
     )
-    lines = [
-        "# Codebase Map",
-        "",
-        f"Profile: `{profile}`",
-        "",
-        "## Entrypoints",
-        "",
-        f"- Public facade: `{package.name}.main.greet`",
-    ]
-    if (package / "__main__.py").exists():
-        lines.extend(
-            [
-                f"- CLI: `{package.name}.entrypoints.cli:main`",
-                f"- Module runner: `python -m {package.name}`",
-            ]
-        )
     lines.extend(["", "## Modules", ""])
-    if modules:
-        for module in modules:
-            layers = [
-                name for name in ("domain", "application", "adapters") if (module / name).exists()
-            ]
-            lines.append(
-                f"- `{module.name}`: "
-                + (", ".join(f"`{layer}`" for layer in layers) or "module package")
-            )
-            for adapter in (
-                sorted((module / "adapters").glob("*.py")) if (module / "adapters").exists() else []
-            ):
-                if adapter.name != "__init__.py":
+    if not modules:
+        lines.append("- No capability modules found.")
+    for module in modules:
+        layers = [
+            name for name in ("domain", "application", "adapters") if (module / name).is_dir()
+        ]
+        description = f" — {responsibilities[module.name]} [knowledge](../modules/{module.name}.md)"
+        lines.append(
+            f"- `{module.name}`: "
+            + (", ".join(f"`{layer}`" for layer in layers) or "module package")
+            + description
+        )
+        application = module / "application" / "__init__.py"
+        exports = _application_exports(application) if application.is_file() else []
+        if exports:
+            lines.append(f"  - Public application contract: `{', '.join(exports)}`")
+        adapter_root = module / "adapters"
+        if adapter_root.is_dir() and not adapter_root.is_symlink():
+            for adapter in sorted(adapter_root.rglob("*.py")):
+                parents = (adapter, *adapter.parents)
+                if adapter.name != "__init__.py" and not any(
+                    item.is_symlink()
+                    for item in parents
+                    if item == adapter_root or adapter_root in item.parents
+                ):
                     adapter_name = adapter.relative_to(package).as_posix()[:-3].replace("/", ".")
                     lines.append(f"  - Adapter: `{adapter_name}`")
-    else:
-        lines.append("- No capability modules yet; this profile keeps code at package root.")
+
     lines.extend(["", "## Platform and shared", ""])
     for name in ("platform", "shared"):
         directory = package / name
@@ -67,25 +105,51 @@ def render() -> str:
                 for path in directory.iterdir()
                 if path.is_dir() and not path.name.startswith((".", "__"))
             )
-            if directory.exists()
+            if directory.is_dir()
             else []
         )
         lines.append(
             f"- `{name}/`: "
             + (", ".join(f"`{item}`" for item in found) if found else "not present")
         )
-    lines.extend(
-        [
-            "",
-            "## Tests and commands",
-            "",
-            "- Tests: `tests/`",
-            "- `uv run pytest`",
-            "- `uv run python scripts/architecture_check.py`",
-            "- `uv run python scripts/generate_codebase_map.py --check`",
-            "",
-        ]
-    )
+    lines.extend(["", "## Tests and commands", ""])
+    tests_root = ROOT / "tests"
+    tests = sorted(path for path in tests_root.rglob("test_*.py")) if tests_root.is_dir() else []
+    if tests_root.is_dir():
+        lines.append("- Test root: `tests/`")
+        relevant_names = {module.name for module in modules}
+        for test in tests:
+            stem = test.stem.removeprefix("test_")
+            parts = test.relative_to(tests_root).parts
+            nested_capability_test = any(
+                part == "modules" and index + 1 < len(parts) and parts[index + 1] in relevant_names
+                for index, part in enumerate(parts)
+            )
+            if stem == "main" or stem in relevant_names or nested_capability_test:
+                lines.append(f"- Test: `{test.relative_to(ROOT).as_posix()}`")
+    else:
+        lines.append("- Tests: not present")
+    for command, present in (
+        ("python scripts/project.py bootstrap", (ROOT / "scripts/project.py").is_file()),
+        ("uv run python scripts/project.py check", (ROOT / "scripts/project.py").is_file()),
+        ("uv run python scripts/project.py verify", (ROOT / "scripts/project.py").is_file()),
+        ("uv run python scripts/project.py status", (ROOT / "scripts/project.py").is_file()),
+        (
+            "uv run python scripts/project.py context --next",
+            (ROOT / "scripts/project.py").is_file(),
+        ),
+        ("uv run python scripts/project.py sync", (ROOT / "scripts/project.py").is_file()),
+        ("uv run python scripts/project.py package-check", (ROOT / "scripts/project.py").is_file()),
+        ("uv run pytest", bool(tests)),
+        (
+            "uv run python scripts/architecture_check.py",
+            (ROOT / "scripts/architecture_check.py").is_file(),
+        ),
+        ("uv run python scripts/generate_codebase_map.py --check", True),
+    ):
+        if present:
+            lines.append(f"- `{command}`")
+    lines.append("")
     return "\n".join(lines)
 
 
@@ -93,7 +157,11 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--check", action="store_true", help="fail if the checked-in map is stale")
     args = parser.parse_args()
-    content = render()
+    try:
+        content = render()
+    except (OSError, ValueError) as exc:
+        print(f"module knowledge check failed: {exc}", file=sys.stderr)
+        return 1
     if args.check:
         if not DESTINATION.exists() or DESTINATION.read_text(encoding="utf-8") != content:
             print("CODEBASE_MAP.md is stale; run python scripts/generate_codebase_map.py")

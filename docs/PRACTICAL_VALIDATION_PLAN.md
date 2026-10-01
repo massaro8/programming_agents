@@ -24,12 +24,13 @@ capability deferred beyond V0.1, or an unbounded task expansion.
 
 ### Objective
 
-Evaluate whether generated guidance preserves a human-authored feature specification and routes its
-implementation through the unified work lifecycle.
+Evaluate whether a freshly generated HARDEN-002 application repository preserves a human-authored
+feature specification and routes its implementation through the unified work lifecycle. Discard the
+AUDIT-001 generated repository; do not repair or reuse it as the test fixture.
 
 ### Setup
 
-Run `agentready init practical-app --profile application --bootstrap`, run
+From the hardened AgentReady revision, run `agentready init practical-app --profile application --bootstrap`, run
 `python scripts/project.py verify`, and open it in
 a fresh coding-agent session only after the project owner has:
 
@@ -38,6 +39,10 @@ a fresh coding-agent session only after the project owner has:
 3. marked it `READY`, synchronized the registry, and verified `work_registry.py check` passes.
 
 The human-authored W001 is the fixed input to the implementation session.
+Keep that specification focused on product behavior and acceptance. The generated repository must
+already explain module/HTTP adapter placement, finite timeouts, configuration and secret ownership,
+vendor error translation, network-free tests, documentation impact, and changelog lifecycle; do not
+paste these engineering rules into the implementation prompt or add them to W001 as repair guidance.
 
 ### Prompt
 
@@ -59,7 +64,8 @@ The human-authored W001 is the fixed input to the implementation session.
   implementation, requiring it to remain
   unchanged. Material ambiguity must produce BLOCKED plus an exact question, not an assumption.
 - Require `python scripts/architecture_check.py` and `python scripts/project.py check` before
-  completion, including an explicit README/architecture/ADR impact decision and changelog entry.
+  completion, including map freshness, an explicit README/architecture/ADR impact decision, a
+  changelog entry, and a substantive migration note if `Breaking: YES`.
 - Require `agentready doctor` to be healthy before detach, and confirm `project.py verify`,
   `work_registry.py`, and the changelog continue to work after detaching a copy of the completed
   project.
@@ -177,3 +183,28 @@ allowed.
 ```
 
 Markdown records are sufficient. V0.1 must not add telemetry or automated model-usage collection.
+
+## PRODUCTIZE-001 — Fresh-context and routing qualification
+
+Generate a new application repository from the built AgentReady wheel, not the prior OpenRouter
+repository. Prepare one human-owned READY FEATURE item, then start an agent with no prior
+conversation context and only the prompt “Implement the next READY work item.” Record whether it
+finds `AGENTS.md`, runs `project.py context --next`, selects the appropriate skill/workflow, reads
+the work item and narrow module context, implements the requirement, verifies, and reaches DONE
+with synced indexes. The prompt must not carry architecture or workflow repair instructions.
+
+Run separate small prompts for FEATURE, BUGFIX, REFACTOR, MAINTENANCE, DOCS, SECURITY review-only,
+SECURITY implementation, repo exploration, and module placement. Include negative probes: a simple
+question must not trigger feature implementation; docs-only work must not edit production source;
+no reproduced defect must not create BUGFIX work; cohesive code must not force REFACTOR; extending
+an existing module must not create another capability. Record route, context paths used, files
+read/changed, gates, and unnecessary subagents. Static routing fixtures supplement but do not
+replace this observed behavior.
+
+Repeat generated-repository qualification for minimal, application, and service: init,
+bootstrap, status/context, skill check, check, verify, installed-wheel smoke, work lifecycle,
+detach, and post-detach check. A separate practical application sequence should exercise W001
+first capability, W002 extension of that capability, W003 second capability, W004 legitimate
+no-code maintenance, security review-only, a fresh-agent next-READY implementation, detach, and
+post-detach feature. Keep all domain behavior deterministic and local; do not add live-network
+requirements to normal project checks.

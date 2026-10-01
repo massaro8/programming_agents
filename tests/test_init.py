@@ -31,6 +31,14 @@ SHARED = [
     "docs/work/templates/security.md",
     "scripts/work_registry.py",
     "scripts/project.py",
+    "scripts/module_knowledge.py",
+    "scripts/skill_routes.py",
+    "scripts/skill_check.py",
+    "scripts/context.py",
+    "scripts/status.py",
+    "scripts/package_check.py",
+    "scripts/command_check.py",
+    "tests/fixtures/skill_routing.json",
     "docs/adr/0000-template.md",
     "docs/agent/index.md",
     "docs/agent/standards/python.md",
@@ -59,6 +67,15 @@ SHARED = [
     ".agents/skills/maintenance/SKILL.md",
     ".agents/skills/documentation/SKILL.md",
     ".agents/skills/security-review/SKILL.md",
+]
+GENERATED = [
+    "CLAUDE.md",
+    ".agentready/manifest.toml",
+    "docs/work/index.md",
+    "docs/changelog/index.md",
+    "docs/generated/CODEBASE_MAP.md",
+]
+GENERATED += [
     ".claude/skills/repo-explore/SKILL.md",
     ".claude/skills/module-placement/SKILL.md",
     ".claude/skills/feature-builder/SKILL.md",
@@ -67,13 +84,6 @@ SHARED = [
     ".claude/skills/maintenance/SKILL.md",
     ".claude/skills/documentation/SKILL.md",
     ".claude/skills/security-review/SKILL.md",
-]
-GENERATED = [
-    "CLAUDE.md",
-    ".agentready/manifest.toml",
-    "docs/work/index.md",
-    "docs/changelog/index.md",
-    "docs/generated/CODEBASE_MAP.md",
 ]
 EXPECTED_FILES = set(PROJECT_OWNED + SHARED + GENERATED)
 
@@ -177,6 +187,7 @@ def test_profiles_have_exact_profile_shape(tmp_path: Path, profile: str) -> None
     expected = common
     if profile != "minimal":
         expected |= {
+            "docs/modules/greeting.md",
             f"src/{package}/__main__.py",
             f"src/{package}/entrypoints/__init__.py",
             f"src/{package}/entrypoints/cli.py",

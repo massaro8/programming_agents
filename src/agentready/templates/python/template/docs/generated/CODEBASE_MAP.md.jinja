@@ -4,29 +4,37 @@ Profile: `{{ profile }}`
 
 ## Entrypoints
 
-- Public facade: `{{ package_name }}.main.greet`
-{% if profile != "minimal" -%}
-- CLI: `{{ package_name }}.entrypoints.cli:main`
+{% if profile == "minimal" -%}
+- No declared command entrypoints.
+{% else -%}
 - Module runner: `python -m {{ package_name }}`
-{% endif %}
-## Modules
+{% endif -%}{{ "\n" }}## Modules
 
 {% if profile == "minimal" -%}
-- No capability modules yet; this profile keeps code at package root.
-{% elif profile == "application" -%}
-- `greeting`: `domain`, `application`
-{% else -%}
-- `greeting`: `domain`, `application`, `adapters`
+- No capability modules found.
+{% elif profile == "service" -%}
+- `greeting`: `domain`, `application`, `adapters` — Provide the greeting use case to project entrypoints. [knowledge](../modules/greeting.md)
+  - Public application contract: `GreetingService`
   - Adapter: `modules.greeting.adapters.console`
-{% endif %}
-## Platform and shared
+{% else -%}
+- `greeting`: `domain`, `application` — Provide the greeting use case to project entrypoints. [knowledge](../modules/greeting.md)
+  - Public application contract: `GreetingService`
+{% endif -%}{{ "\n" }}## Platform and shared
 
 - `platform/`: not present
 - `shared/`: not present
 
 ## Tests and commands
 
-- Tests: `tests/`
+- Test root: `tests/`
+- Test: `tests/test_main.py`
+- `python scripts/project.py bootstrap`
+- `uv run python scripts/project.py check`
+- `uv run python scripts/project.py verify`
+- `uv run python scripts/project.py status`
+- `uv run python scripts/project.py context --next`
+- `uv run python scripts/project.py sync`
+- `uv run python scripts/project.py package-check`
 - `uv run pytest`
 - `uv run python scripts/architecture_check.py`
 - `uv run python scripts/generate_codebase_map.py --check`

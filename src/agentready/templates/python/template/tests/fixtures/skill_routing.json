@@ -1,0 +1,12 @@
+{
+  "scope": "static route and context fixtures; not model-routing evaluation",
+  "scenarios": [
+    {"work_type": "FEATURE", "expected_skill": "feature-builder", "required_context": ["docs/agent/workflows/feature.md", "docs/agent/standards/architecture.md", "docs/agent/standards/testing.md"], "must_not_do": ["implement without READY acceptance"]},
+    {"work_type": "BUGFIX", "expected_skill": "bug-investigation", "required_context": ["docs/agent/workflows/bugfix.md", "docs/agent/standards/testing.md"], "must_not_do": ["fix before reproducing"]},
+    {"work_type": "REFACTOR", "expected_skill": "refactoring", "required_context": ["docs/agent/workflows/refactor.md", "docs/agent/standards/architecture.md", "docs/agent/standards/testing.md"], "must_not_do": ["change observable behavior"]},
+    {"work_type": "MAINTENANCE", "expected_skill": "maintenance", "required_context": ["docs/agent/workflows/maintenance.md", "docs/agent/standards/dependencies.md"], "must_not_do": ["add unjustified production dependency"]},
+    {"work_type": "DOCS", "expected_skill": "documentation", "required_context": ["docs/agent/workflows/documentation.md", "docs/agent/standards/documentation.md"], "must_not_do": ["change runtime code without scope"]},
+    {"work_type": "SECURITY", "mode": "review-only", "expected_skill": "security-review", "required_context": ["docs/agent/workflows/security.md", "docs/agent/standards/security.md"], "must_not_do": ["edit production files", "create a work item"]},
+    {"work_type": "SECURITY", "mode": "implementation", "expected_skill": "security-review", "required_context": ["docs/agent/workflows/security.md", "docs/agent/standards/security.md"], "must_not_do": ["implement without READY item"]}
+  ]
+}

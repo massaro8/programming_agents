@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 
 from agentready.doctor.inspector import format_report, inspect
@@ -31,19 +32,7 @@ def bootstrap_project(target: Path) -> None:
     uv = shutil.which("uv")
     if uv is None:
         raise BootstrapError("bootstrap stage 'uv availability' failed: install uv and retry")
-    _run("uv sync", [uv, "sync", "--all-groups"], root)
-    if not (root / "uv.lock").is_file():
-        raise BootstrapError("bootstrap stage 'lockfile' failed: uv sync did not create uv.lock")
-    _run(
-        "work registry check",
-        [uv, "run", "python", "scripts/work_registry.py", "check"],
-        root,
-    )
-    _run(
-        "architecture check",
-        [uv, "run", "python", "scripts/architecture_check.py"],
-        root,
-    )
+    _run("project bootstrap", [sys.executable, "scripts/project.py", "bootstrap"], root)
     report = inspect(root)
     if not report.healthy:
         raise BootstrapError(f"bootstrap stage 'doctor' failed:\n{format_report(report)}")

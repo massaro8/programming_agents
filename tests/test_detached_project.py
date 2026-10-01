@@ -166,6 +166,7 @@ def test_formal_detach_no_lock_in_qualification(tmp_path: Path, profile: str) ->
     assert set(after) == set(before) - removed
     assert all(after[name] == before[name] for name in after)
     assert not (project / ".agentready").exists()
+    run([uv, "run", "python", "scripts/module_knowledge.py", "check"], project, env)
     run([uv, "run", "python", "scripts/project.py", "bootstrap"], project, env)
     run([uv, "run", "python", "scripts/project.py", "check"], project, env)
     run([uv, "run", "python", "scripts/project.py", "verify"], project, env)

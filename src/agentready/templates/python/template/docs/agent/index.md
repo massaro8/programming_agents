@@ -22,3 +22,8 @@ matching skill or fallback above. Load only relevant standards: [Python](standar
 [architecture](standards/architecture.md), [testing](standards/testing.md),
 [dependencies](standards/dependencies.md), [documentation](standards/documentation.md), or
 [security](standards/security.md). If blocked, record the blocker, transition to BLOCKED, and stop.
+
+Use `python scripts/project.py context --next` for the deterministic next-READY route, or
+`python scripts/project.py context W003` for an explicit item. The command returns paths and
+metadata, not full document contents or an implementation plan. `python scripts/project.py status`
+is a read-only overview. If scripts are unavailable, use this index and the work item directly.

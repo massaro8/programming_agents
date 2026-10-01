@@ -17,6 +17,10 @@ Status: BACKLOG
 ### Inputs / outputs
 <Describe as applicable>
 
+### Public contract and compatibility
+<Identify affected CLI/API/schema/persisted-format/integration contracts; assess breaking change,
+migration or compatibility path, README/user documentation, and tests. Use NONE when not applicable.>
+
 ### Constraints
 - <Constraint>
 

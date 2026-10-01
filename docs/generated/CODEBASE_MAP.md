@@ -1,6 +1,6 @@
 # Codebase Map
 
-Structure fingerprint: `19706cab4516`
+Structure fingerprint: `8b7380f526b5`
 
 Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 
@@ -82,9 +82,11 @@ Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 - `docs/audits/FLOW_002_AUDIT.md`
 - `docs/audits/FLOW_003_AUDIT.md`
 - `docs/audits/HARDEN_001_AUDIT.md`
+- `docs/audits/HARDEN_002_AUDIT.md`
 - `docs/audits/INIT_001_AUDIT.md`
 - `docs/audits/INIT_002_AUDIT.md`
 - `docs/audits/PHASE0_BASELINE_AUDIT.md`
+- `docs/audits/PRODUCTIZE_001_AUDIT.md`
 - `docs/audits/PYT_001_AUDIT.md`
 - `docs/audits/REL_001_AUDIT.md`
 - `docs/generated/CODEBASE_MAP.md`
@@ -141,14 +143,14 @@ Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 - `src/agentready/templates/python/template/.agents/skills/refactoring/SKILL.md`
 - `src/agentready/templates/python/template/.agents/skills/repo-explore/SKILL.md`
 - `src/agentready/templates/python/template/.agents/skills/security-review/SKILL.md`
-- `src/agentready/templates/python/template/.claude/skills/bug-investigation/SKILL.md`
-- `src/agentready/templates/python/template/.claude/skills/documentation/SKILL.md`
-- `src/agentready/templates/python/template/.claude/skills/feature-builder/SKILL.md`
-- `src/agentready/templates/python/template/.claude/skills/maintenance/SKILL.md`
-- `src/agentready/templates/python/template/.claude/skills/module-placement/SKILL.md`
-- `src/agentready/templates/python/template/.claude/skills/refactoring/SKILL.md`
-- `src/agentready/templates/python/template/.claude/skills/repo-explore/SKILL.md`
-- `src/agentready/templates/python/template/.claude/skills/security-review/SKILL.md`
+- `src/agentready/templates/python/template/.claude/skills/bug-investigation/SKILL.md.jinja`
+- `src/agentready/templates/python/template/.claude/skills/documentation/SKILL.md.jinja`
+- `src/agentready/templates/python/template/.claude/skills/feature-builder/SKILL.md.jinja`
+- `src/agentready/templates/python/template/.claude/skills/maintenance/SKILL.md.jinja`
+- `src/agentready/templates/python/template/.claude/skills/module-placement/SKILL.md.jinja`
+- `src/agentready/templates/python/template/.claude/skills/refactoring/SKILL.md.jinja`
+- `src/agentready/templates/python/template/.claude/skills/repo-explore/SKILL.md.jinja`
+- `src/agentready/templates/python/template/.claude/skills/security-review/SKILL.md.jinja`
 - `src/agentready/templates/python/template/.github/workflows/ci.yml`
 - `src/agentready/templates/python/template/.gitignore`
 - `src/agentready/templates/python/template/.python-version`
@@ -176,6 +178,7 @@ Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 - `src/agentready/templates/python/template/docs/agent/workflows/security.md`
 - `src/agentready/templates/python/template/docs/changelog/index.md`
 - `src/agentready/templates/python/template/docs/generated/CODEBASE_MAP.md.jinja`
+- `src/agentready/templates/python/template/docs/modules/greeting.md.jinja`
 - `src/agentready/templates/python/template/docs/work/index.md`
 - `src/agentready/templates/python/template/docs/work/templates/bugfix.md`
 - `src/agentready/templates/python/template/docs/work/templates/documentation.md`
@@ -185,8 +188,15 @@ Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 - `src/agentready/templates/python/template/docs/work/templates/security.md`
 - `src/agentready/templates/python/template/pyproject.toml.jinja`
 - `src/agentready/templates/python/template/scripts/architecture_check.py.jinja`
+- `src/agentready/templates/python/template/scripts/command_check.py`
+- `src/agentready/templates/python/template/scripts/context.py`
 - `src/agentready/templates/python/template/scripts/generate_codebase_map.py.jinja`
+- `src/agentready/templates/python/template/scripts/module_knowledge.py.jinja`
+- `src/agentready/templates/python/template/scripts/package_check.py.jinja`
 - `src/agentready/templates/python/template/scripts/project.py`
+- `src/agentready/templates/python/template/scripts/skill_check.py`
+- `src/agentready/templates/python/template/scripts/skill_routes.py`
+- `src/agentready/templates/python/template/scripts/status.py`
 - `src/agentready/templates/python/template/scripts/work_registry.py`
 - `src/agentready/templates/python/template/src/{{ package_name }}/__init__.py.jinja`
 - `src/agentready/templates/python/template/src/{{ package_name }}/__main__.py.jinja`
@@ -203,6 +213,7 @@ Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 - `src/agentready/templates/python/template/src/{{ package_name }}/modules/greeting/application/service.py.jinja`
 - `src/agentready/templates/python/template/src/{{ package_name }}/modules/greeting/domain/__init__.py.jinja`
 - `src/agentready/templates/python/template/src/{{ package_name }}/modules/greeting/domain/errors.py.jinja`
+- `src/agentready/templates/python/template/tests/fixtures/skill_routing.json`
 - `src/agentready/templates/python/template/tests/test_main.py.jinja`
 
 ### `tests`
@@ -213,10 +224,13 @@ Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 - `tests/test_doctor.py`
 - `tests/test_doctor_json.py`
 - `tests/test_generated_architecture.py`
+- `tests/test_generated_context.py`
 - `tests/test_generated_project.py`
 - `tests/test_init.py`
 - `tests/test_ownership.py`
+- `tests/test_package_check.py`
 - `tests/test_project.py`
+- `tests/test_skill_contract.py`
 - `tests/test_smoke.py`
 - `tests/test_work_registry.py`
 

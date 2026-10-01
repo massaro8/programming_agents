@@ -27,6 +27,11 @@ class RegistryError(ValueError):
     """Invalid work item or registry state."""
 
 
+def _unsafe(path: Path) -> bool:
+    """Reject symlinks and Windows junctions before repository-local I/O."""
+    return path.is_symlink() or path.is_junction()
+
+
 @dataclass(frozen=True)
 class Work:
     number: int
@@ -61,6 +66,18 @@ def _field(text: str, name: str) -> str | None:
 def _section(text: str, heading: str) -> str:
     match = re.search(rf"^## {re.escape(heading)}\s*$([\s\S]*?)(?=^## |\Z)", text, re.MULTILINE)
     return match.group(1) if match else ""
+
+
+def _heading_error(work: Work, heading: str, level: int) -> RegistryError | None:
+    expected = f"{'#' * level} {heading}"
+    pattern = r"^(#{1,6})\s+" + re.escape(heading) + r"\s*$"
+    match = re.search(pattern, work.text, re.I | re.M)
+    if match and match.group(0).strip() != expected:
+        return RegistryError(
+            f"DONE item {work.work_id} malformed heading for {heading}: "
+            f"expected '{expected}', found '{match.group(0).strip()}'"
+        )
+    return None
 
 
 def parse(path: Path) -> Work:
@@ -103,6 +120,11 @@ def parse(path: Path) -> Work:
 
 
 def validate_done(work: Work) -> None:
+    for heading in ("Implementation record", "Changelog", "Documentation impact"):
+        if error := _heading_error(work, heading, 2):
+            raise error
+        if not re.search(rf"^## {re.escape(heading)}\s*$", work.text, re.MULTILINE):
+            raise RegistryError(f"DONE item {work.work_id} missing '## {heading}' section")
     record = _section(work.text, "Implementation record")
     changelog = _section(work.text, "Changelog")
     impact_section = _section(work.text, "Documentation impact")
@@ -117,6 +139,8 @@ def validate_done(work: Work) -> None:
         "AgentReady observations",
     ):
         value = _field(record, label)
+        if value is None and (error := _heading_error(work, label, 3)):
+            raise error
         if not value or value in {"NOT_STARTED", "BLOCKED", "TODO"} or value.startswith("<"):
             raise RegistryError(
                 f"DONE item {work.work_id} has incomplete implementation record: {label}"
@@ -138,6 +162,15 @@ def validate_done(work: Work) -> None:
         raise RegistryError(f"DONE item {work.work_id} has invalid user impact")
     if breaking not in {"NO", "YES"} or not migration or migration.startswith("<"):
         raise RegistryError(f"DONE item {work.work_id} requires breaking and migration values")
+    if breaking == "YES" and migration.strip().upper() in {
+        "NOT_REQUIRED",
+        "NONE",
+        "TODO",
+        "TBD",
+        "N/A",
+        "NA",
+    }:
+        raise RegistryError(f"DONE breaking item {work.work_id} requires migration guidance")
     for label in ("README", "ARCHITECTURE", "ADR", "OTHER"):
         value = _field(impact_section, label)
         allowed = {"UPDATED", "NOT_REQUIRED"} if label != "OTHER" else {"UPDATED", "NONE"}
@@ -158,11 +191,11 @@ def validate_done(work: Work) -> None:
 
 def read_work(root: Path) -> list[Work]:
     directory = root / "docs" / "work"
-    if (root / "docs").is_symlink() or directory.is_symlink() or not directory.is_dir():
+    if _unsafe(root / "docs") or _unsafe(directory) or not directory.is_dir():
         raise RegistryError("docs/work directory is missing or unsafe")
     works, seen = [], set()
     for path in sorted(directory.iterdir(), key=lambda p: p.name):
-        if path.is_symlink():
+        if _unsafe(path):
             raise RegistryError(f"unsafe work entry: {path.name}")
         if path.is_dir() or path.name == "index.md" or path.suffix.lower() != ".md":
             continue
@@ -210,7 +243,7 @@ def render_changelog(items: list[Work]) -> str:
 
 
 def _write(path: Path, text: str) -> None:
-    if path.is_symlink() or path.parent.is_symlink() or not path.parent.is_dir():
+    if _unsafe(path) or _unsafe(path.parent) or not path.parent.is_dir():
         raise RegistryError(f"unsafe generated path: {path}")
     temporary_path = None
     try:
@@ -240,7 +273,7 @@ def check(root: Path) -> None:
         ("docs/changelog/index.md", render_changelog(items)),
     ):
         path = root / rel
-        if path.is_symlink() or not path.is_file() or path.read_text(encoding="utf-8") != expected:
+        if _unsafe(path) or not path.is_file() or path.read_text(encoding="utf-8") != expected:
             raise RegistryError(
                 f"{rel} is missing, unsafe, or out of date; "
                 "run: python scripts/work_registry.py sync"
@@ -266,7 +299,7 @@ def new_work(root: Path, kind: str, title: str) -> str:
         raise RegistryError(f"refusing to overwrite {path.name}")
     template_name = "documentation" if kind == "DOCS" else kind.lower()
     template = root / "docs/work/templates" / f"{template_name}.md"
-    if template.is_symlink() or not template.is_file():
+    if _unsafe(template) or not template.is_file():
         raise RegistryError(f"work template missing or unsafe: {template.name}")
     content = template.read_text(encoding="utf-8")
     placeholder = "# WNNN — Work title"

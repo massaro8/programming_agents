@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import runpy
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 import pytest
@@ -25,6 +27,17 @@ def run(root: Path, *args: str) -> subprocess.CompletedProcess[str]:
         text=True,
         check=False,
     )
+
+
+def test_registry_rejects_windows_junction_boundary(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    root = project(tmp_path)
+    registry = runpy.run_path(str(root / "scripts/work_registry.py"))
+    boundary = root / "docs/work"
+    monkeypatch.setattr(Path, "is_junction", lambda self: self == boundary)
+    with pytest.raises(ValueError, match="unsafe"):
+        registry["read_work"](root)
 
 
 def test_empty_registry_and_mixed_work_lifecycle(tmp_path: Path) -> None:
@@ -106,6 +119,93 @@ def test_registry_survives_detach(tmp_path: Path) -> None:
     assert not (root / ".agentready").exists()
     assert run(root, "check").returncode == 0
     assert (root / "docs/work/W001-detached-documentation.md").is_file()
+
+
+def test_breaking_done_item_requires_migration_guidance_in_registry_and_doctor(
+    tmp_path: Path,
+) -> None:
+    root = project(tmp_path)
+    assert run(root, "new", "--type", "FEATURE", "Breaking change").returncode == 0
+    item = root / "docs/work/W001-breaking-change.md"
+    text = item.read_text().replace("Status: BACKLOG", "Status: READY", 1)
+    text = text.replace("README: NOT_EVALUATED", "README: NOT_REQUIRED")
+    text = text.replace("ARCHITECTURE: NOT_EVALUATED", "ARCHITECTURE: NOT_REQUIRED")
+    text = text.replace("ADR: NOT_EVALUATED", "ADR: NOT_REQUIRED")
+    text = text.replace("### Result\nNOT_STARTED", "### Result\nCOMPLETE")
+    text = text.replace("<None yet>", "Updated the public API")
+    text = text.replace("<None>", "None")
+    text = text.replace(
+        "### Verification performed\nNone", "### Verification performed\nTests passed"
+    )
+    text = text.replace("Summary: <Concise summary>", "Summary: Changed the public API")
+    text = text.replace("Breaking: NO", "Breaking: YES")
+    item.write_text(text)
+    assert run(root, "transition", "W001", "IN_PROGRESS").returncode == 0
+    failed = run(root, "transition", "W001", "DONE")
+    assert failed.returncode != 0
+    assert "migration guidance" in failed.stderr
+
+    item.write_text(
+        item.read_text()
+        .replace("Status: IN_PROGRESS", "Status: DONE")
+        .replace("Migration: NOT_REQUIRED", "Migration: Migrate callers to the new API")
+    )
+    assert run(root, "sync").returncode == 0
+    assert run(root, "check").returncode == 0
+    item.write_text(item.read_text().replace("Migrate callers to the new API", "NOT_REQUIRED"))
+    assert "migration guidance" in run(root, "check").stderr
+    finding = next(f for f in inspect(root).findings if f.check_id == "work.registry")
+    assert finding.status is FindingStatus.FAIL
+    assert "migration guidance" in finding.message
+
+
+@pytest.mark.parametrize(
+    ("original", "malformed", "expected"),
+    (
+        ("## Implementation record", "### Implementation record", "## Implementation record"),
+        ("### Result", "## Result", "### Result"),
+    ),
+)
+def test_done_heading_diagnostic_names_expected_and_actual_forms(
+    tmp_path: Path, original: str, malformed: str, expected: str
+) -> None:
+    root = project(tmp_path)
+    assert run(root, "new", "--type", "FEATURE", "Heading diagnostic").returncode == 0
+    item = root / "docs/work/W001-heading-diagnostic.md"
+    item.write_text(
+        item.read_text(encoding="utf-8")
+        .replace("Status: BACKLOG", "Status: DONE", 1)
+        .replace(original, malformed, 1),
+        encoding="utf-8",
+    )
+
+    result = run(root, "check")
+    assert result.returncode != 0
+    assert "W001" in result.stderr
+    assert expected in result.stderr
+    assert malformed in result.stderr
+
+
+def test_registry_handles_hundreds_of_items_deterministically(tmp_path: Path) -> None:
+    root = project(tmp_path)
+    template = (root / "docs/work/templates/feature.md").read_text(encoding="utf-8")
+    for number in range(1, 301):
+        work_id = f"W{number:03d}"
+        title = f"Item {number:03d}"
+        path = root / "docs/work" / f"{work_id}-item-{number:03d}.md"
+        path.write_text(
+            template.replace("# WNNN — Work title", f"# {work_id} — {title}", 1),
+            encoding="utf-8",
+        )
+
+    started = time.monotonic()
+    assert run(root, "sync").returncode == 0
+    first_index = (root / "docs/work/index.md").read_bytes()
+    assert run(root, "check").returncode == 0
+    assert run(root, "next-id").stdout.strip() == "W301"
+    assert run(root, "sync").returncode == 0
+    assert (root / "docs/work/index.md").read_bytes() == first_index
+    assert time.monotonic() - started < 30
 
 
 def test_ready_selection_filters_and_monotonic_ids_across_types(tmp_path: Path) -> None:

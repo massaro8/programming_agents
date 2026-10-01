@@ -33,6 +33,14 @@ _COMMON_SHARED = (
     "docs/work/templates/security.md",
     "scripts/work_registry.py",
     "scripts/project.py",
+    "scripts/module_knowledge.py",
+    "scripts/skill_routes.py",
+    "scripts/skill_check.py",
+    "scripts/context.py",
+    "scripts/status.py",
+    "scripts/package_check.py",
+    "scripts/command_check.py",
+    "tests/fixtures/skill_routing.json",
     "docs/adr/0000-template.md",
     "docs/agent/index.md",
     "docs/agent/standards/python.md",
@@ -61,6 +69,13 @@ _COMMON_SHARED = (
     ".agents/skills/maintenance/SKILL.md",
     ".agents/skills/documentation/SKILL.md",
     ".agents/skills/security-review/SKILL.md",
+)
+_COMMON_GENERATED = (
+    "CLAUDE.md",
+    ".agentready/manifest.toml",
+    "docs/work/index.md",
+    "docs/changelog/index.md",
+    "docs/generated/CODEBASE_MAP.md",
     ".claude/skills/repo-explore/SKILL.md",
     ".claude/skills/module-placement/SKILL.md",
     ".claude/skills/feature-builder/SKILL.md",
@@ -70,13 +85,6 @@ _COMMON_SHARED = (
     ".claude/skills/documentation/SKILL.md",
     ".claude/skills/security-review/SKILL.md",
 )
-_COMMON_GENERATED = (
-    "CLAUDE.md",
-    ".agentready/manifest.toml",
-    "docs/work/index.md",
-    "docs/changelog/index.md",
-    "docs/generated/CODEBASE_MAP.md",
-)
 _PROFILE_FILES: dict[str, tuple[str, ...]] = {
     "minimal": (
         "src/{package}/__init__.py",
@@ -84,6 +92,7 @@ _PROFILE_FILES: dict[str, tuple[str, ...]] = {
         "tests/test_main.py",
     ),
     "application": (
+        "docs/modules/greeting.md",
         "src/{package}/__init__.py",
         "src/{package}/__main__.py",
         "src/{package}/entrypoints/__init__.py",
@@ -100,6 +109,7 @@ _PROFILE_FILES: dict[str, tuple[str, ...]] = {
         "tests/test_main.py",
     ),
     "service": (
+        "docs/modules/greeting.md",
         "src/{package}/__init__.py",
         "src/{package}/__main__.py",
         "src/{package}/entrypoints/__init__.py",
