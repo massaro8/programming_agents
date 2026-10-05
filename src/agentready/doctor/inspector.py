@@ -347,9 +347,9 @@ def inspect(root: Path | str = ".") -> DoctorReport:
         _finding(
             "repository.codebase_map",
             map_ok,
-            "codebase map matches module structure"
+            "codebase map covers architectural repository structure"
             if map_ok
-            else "codebase map is missing, unsafe, or stale; regenerate it",
+            else "codebase map is missing, unsafe, stale, or incomplete; regenerate it",
             map_pp,
         )
     )

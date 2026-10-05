@@ -12,7 +12,7 @@ description: Use for a READY MAINTENANCE item changing dependencies, developer t
 ## Procedure
 1. Read instructions, map, and [maintenance workflow](../../../docs/agent/workflows/maintenance.md); search affected configuration.
 2. Establish current behavior and versions; identify compatibility and supply-chain effects.
-3. Change authoritative configuration and regenerate lock data with the approved tool.
+3. Change authoritative configuration and regenerate lock data with the approved tool when inspection shows a change is needed. If no change is warranted, record the evidence, verification performed, dependency/tool state, and implementation outcome.
 4. Keep development local and deterministic; justify any new production dependency.
 5. Verify resolution, runtime compatibility, packaging, and affected CI commands.
 6. Review docs/ADR impact and record versions, commands, outcomes, and deviations.

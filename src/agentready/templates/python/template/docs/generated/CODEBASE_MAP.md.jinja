@@ -8,6 +8,7 @@ Profile: `{{ profile }}`
 - No declared command entrypoints.
 {% else -%}
 - Module runner: `python -m {{ package_name }}`
+- Entrypoint: `src/{{ package_name }}/entrypoints/cli.py`
 {% endif -%}{{ "\n" }}## Modules
 
 {% if profile == "minimal" -%}

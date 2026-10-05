@@ -118,6 +118,14 @@ def test_formal_detach_no_lock_in_qualification(tmp_path: Path, profile: str) ->
         encoding="utf-8",
     )
     run([uv, "run", "python", "scripts/work_registry.py", "sync"], project, env)
+    if profile != "minimal":
+        sqlite = project / "src/demo_agentready/platform/sqlite.py"
+        sqlite.parent.mkdir()
+        sqlite.write_text('"""Synthetic shared persistence responsibility."""\n', encoding="utf-8")
+        run([uv, "run", "python", "scripts/project.py", "sync"], project, env)
+        assert "src/demo_agentready/platform/sqlite.py" in (
+            project / "docs/generated/CODEBASE_MAP.md"
+        ).read_text(encoding="utf-8")
     doctor = subprocess.run(
         [str(tool), "doctor", str(project), "--format", "json"],
         cwd=tmp_path,
@@ -172,6 +180,28 @@ def test_formal_detach_no_lock_in_qualification(tmp_path: Path, profile: str) ->
     run([uv, "run", "python", "scripts/project.py", "verify"], project, env)
     run([uv, "run", "python", "scripts/work_registry.py", "check"], project, env)
     run([uv, "run", "python", "scripts/work_registry.py", "sync"], project, env)
+    run([uv, "run", "python", "scripts/project.py", "status"], project, env)
+    run([uv, "run", "python", "scripts/project.py", "context", "--next"], project, env)
+    run([uv, "run", "python", "scripts/project.py", "package-check"], project, env)
+    run([uv, "run", "python", "scripts/skill_check.py"], project, env)
+    if profile != "minimal":
+        cache = project / "src/demo_agentready/platform/cache.py"
+        cache.parent.mkdir(exist_ok=True)
+        cache.write_text('"""Synthetic shared cache responsibility."""\n', encoding="utf-8")
+        stale = subprocess.run(
+            [uv, "run", "python", "scripts/generate_codebase_map.py", "--check"],
+            cwd=project,
+            env=env,
+            capture_output=True,
+            check=False,
+        )
+        assert stale.returncode == 1
+        run([uv, "run", "python", "scripts/project.py", "sync"], project, env)
+        assert "src/demo_agentready/platform/cache.py" in (
+            project / "docs/generated/CODEBASE_MAP.md"
+        ).read_text(encoding="utf-8")
+        run([uv, "run", "python", "scripts/project.py", "check"], project, env)
+    assert not (project / ".agentready").exists()
     assert "W002 [DOCS] BACKLOG" in run(
         [uv, "run", "python", "scripts/work_registry.py", "list"], project, env
     )

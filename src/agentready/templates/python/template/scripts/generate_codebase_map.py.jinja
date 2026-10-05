@@ -3,12 +3,12 @@
 from __future__ import annotations
 
 import argparse
-import ast
 import sys
 import tomllib
 from pathlib import Path
 
 from module_knowledge import check as check_module_knowledge
+from repository_inventory import application_exports, discover, python_files
 
 PACKAGE = "{{ package_name }}"
 PROFILE = "{{ profile }}"
@@ -16,31 +16,10 @@ ROOT = Path(__file__).resolve().parents[1]
 DESTINATION = ROOT / "docs" / "generated" / "CODEBASE_MAP.md"
 
 
-def _application_exports(path: Path) -> list[str]:
-    """Read an explicit __all__ declaration without importing project code."""
-    try:
-        tree = ast.parse(path.read_text(encoding="utf-8"))
-    except (OSError, SyntaxError):
-        return []
-    for node in tree.body:
-        if isinstance(node, (ast.Assign, ast.AnnAssign)):
-            targets = node.targets if isinstance(node, ast.Assign) else [node.target]
-            if any(isinstance(target, ast.Name) and target.id == "__all__" for target in targets):
-                try:
-                    value = ast.literal_eval(node.value)
-                except (ValueError, TypeError):
-                    return []
-                if not isinstance(value, (list, tuple)) or not all(
-                    isinstance(item, str) for item in value
-                ):
-                    return []
-                return sorted(item for item in value if isinstance(item, str))
-    return []
-
-
 def render() -> str:
     responsibilities = check_module_knowledge(ROOT)
     package = ROOT / "src" / PACKAGE
+    inventory = discover(ROOT, PACKAGE)
     lines = ["# Codebase Map", "", f"Profile: `{PROFILE}`", "", "## Entrypoints", ""]
     try:
         project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
@@ -51,29 +30,17 @@ def render() -> str:
         lines.append(f"- Console script `{name}`: `{target}`")
     if (package / "__main__.py").is_file():
         lines.append(f"- Module runner: `python -m {PACKAGE}`")
+    for entrypoint in inventory.entrypoints:
+        lines.append(f"- Entrypoint: `{entrypoint.relative_to(ROOT).as_posix()}`")
     if not scripts and not (package / "__main__.py").is_file():
         lines.append("- No declared command entrypoints.")
 
-    modules_root = package / "modules"
-    modules = (
-        sorted(
-            (
-                path
-                for path in modules_root.iterdir()
-                if path.is_dir() and not path.name.startswith((".", "__"))
-            ),
-            key=lambda path: path.name,
-        )
-        if modules_root.is_dir()
-        else []
-    )
+    modules = inventory.modules
     lines.extend(["", "## Modules", ""])
     if not modules:
         lines.append("- No capability modules found.")
     for module in modules:
-        layers = [
-            name for name in ("domain", "application", "adapters") if (module / name).is_dir()
-        ]
+        layers = dict(inventory.module_layers)[module.name]
         description = f" — {responsibilities[module.name]} [knowledge](../modules/{module.name}.md)"
         lines.append(
             f"- `{module.name}`: "
@@ -81,12 +48,14 @@ def render() -> str:
             + description
         )
         application = module / "application" / "__init__.py"
-        exports = _application_exports(application) if application.is_file() else []
+        if not application.is_file():
+            application = module / "application.py"
+        exports = application_exports(application) if application.is_file() else []
         if exports:
             lines.append(f"  - Public application contract: `{', '.join(exports)}`")
         adapter_root = module / "adapters"
         if adapter_root.is_dir() and not adapter_root.is_symlink():
-            for adapter in sorted(adapter_root.rglob("*.py")):
+            for adapter in python_files(adapter_root):
                 parents = (adapter, *adapter.parents)
                 if adapter.name != "__init__.py" and not any(
                     item.is_symlink()
@@ -98,23 +67,18 @@ def render() -> str:
 
     lines.extend(["", "## Platform and shared", ""])
     for name in ("platform", "shared"):
-        directory = package / name
-        found = (
-            sorted(
-                path.name
-                for path in directory.iterdir()
-                if path.is_dir() and not path.name.startswith((".", "__"))
-            )
-            if directory.is_dir()
-            else []
-        )
+        found = getattr(inventory, name)
         lines.append(
             f"- `{name}/`: "
-            + (", ".join(f"`{item}`" for item in found) if found else "not present")
+            + (
+                ", ".join(f"`{item.relative_to(ROOT).as_posix()}`" for item in found)
+                if found
+                else "not present"
+            )
         )
     lines.extend(["", "## Tests and commands", ""])
     tests_root = ROOT / "tests"
-    tests = sorted(path for path in tests_root.rglob("test_*.py")) if tests_root.is_dir() else []
+    tests = inventory.tests
     if tests_root.is_dir():
         lines.append("- Test root: `tests/`")
         relevant_names = {module.name for module in modules}

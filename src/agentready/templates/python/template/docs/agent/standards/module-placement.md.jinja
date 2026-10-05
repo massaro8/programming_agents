@@ -26,6 +26,9 @@ they obscure capability ownership. A module may still have a domain-local `model
 `services.py` when that name has a clear meaning there. Keep `platform/` and `shared/` absent until
 real consumers need them.
 
+A technical or shared responsibility may be a flat Python file (such as `platform/sqlite.py`)
+or a package (`platform/sqlite/`); choose by responsibility and complexity, not map formatting.
+
 The minimal profile stays direct while it is small. When unrelated capabilities begin accumulating,
 consider migrating to this module structure instead of adding global buckets.
 
@@ -35,3 +38,7 @@ For each capability module, maintain one project-owned `docs/modules/<capability
 responsibility, public application surface, external boundaries, and tests. Use
 `python scripts/module_knowledge.py new <capability> --responsibility "..."` to create a module
 without speculative layers; update its card as its actual boundaries become known.
+Cards contain a heading followed by `Responsibility`, `Public application surface`,
+`External boundaries`, and `Tests` fields in that order, one line each. `Tests` uses
+comma-separated repository-relative `tests/...` paths, or `Not documented.` while unrecorded;
+optional backticks and a final period are accepted.

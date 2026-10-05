@@ -27,7 +27,18 @@ or outer boundary. Operations that can block need finite bounds when supported; 
 always need a finite timeout. Retry only plausibly transient failures when the operation is
 idempotent or explicitly made safe, with one clear retry owner. Never retry at multiple layers.
 Resources such as files, clients, connections, transactions, and streams need explicit ownership
-and deterministic cleanup.
+and deterministic cleanup. Record who creates or opens each resource, who commits or rolls back
+its transaction, who closes it, and when ownership transfers. Reuse caller-owned resources; close
+only resources your code owns. Check whether reuse is supported after scope exit or failure.
+A context manager's exit ends the scope it manages, but does not automatically close every object
+it yields; define commit, rollback, and release behavior on success and failure.
+For example, a transaction context can end the transaction while leaving its
+caller-owned connection open:
+
+```python
+with connection.transaction():
+    perform_work(connection)
+```
 
 Translate vendor failures into a stable inward-facing error when the meaning matters, preserving
 the cause (`raise ApplicationFacingError(...) from exc`). Do not wrap exceptions just for

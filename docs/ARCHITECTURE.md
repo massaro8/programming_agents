@@ -113,6 +113,15 @@ Target production architecture: CLI + Copier as internal rendering/update engine
 
 V0.1 must use only trusted bundled templates. Arbitrary remote template execution is out of scope.
 
+## Generated repository knowledge
+
+Generated repository knowledge uses the deterministic structural inventory in
+`core/inventory.py`, exported as standalone `scripts/repository_inventory.py` in generated
+projects. Python files and source-containing packages both represent architectural responsibility
+roots. CODEBASE_MAP renders these roots compactly; Doctor independently checks semantic coverage
+against the inventory, never renderer self-consistency. Profile contracts own required seed
+structure. Capability cards remain project-owned; private helper files need not appear in maps.
+
 ## Data / network
 
 V0.1 stores only local metadata. No backend, account, API key, telemetry, or remote AgentReady service is

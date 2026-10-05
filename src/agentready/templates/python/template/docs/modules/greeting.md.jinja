@@ -1,5 +1,9 @@
 # greeting
 Responsibility: Provide the greeting use case to project entrypoints.
 Public application surface: GreetingService.
-External boundaries: Console output through the console adapter in service profile.
+{% if profile == "service" -%}
+External boundaries: Console output through the console adapter.
+{% else -%}
+External boundaries: No adapter boundary in this profile.
+{% endif -%}
 Tests: tests/test_main.py.

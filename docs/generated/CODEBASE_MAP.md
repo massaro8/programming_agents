@@ -1,6 +1,6 @@
 # Codebase Map
 
-Structure fingerprint: `8b7380f526b5`
+Structure fingerprint: `4c71d340487a`
 
 Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 
@@ -89,6 +89,7 @@ Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 - `docs/audits/PRODUCTIZE_001_AUDIT.md`
 - `docs/audits/PYT_001_AUDIT.md`
 - `docs/audits/REL_001_AUDIT.md`
+- `docs/audits/STRESS_FIX_001_AUDIT.md`
 - `docs/generated/CODEBASE_MAP.md`
 - `docs/work/templates/feature.md`
 
@@ -119,6 +120,7 @@ Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 - `src/agentready/bootstrap.py`
 - `src/agentready/cli.py`
 - `src/agentready/core/__init__.py`
+- `src/agentready/core/inventory.py`
 - `src/agentready/core/ownership.py`
 - `src/agentready/core/profiles.py`
 - `src/agentready/core/project.py`
@@ -194,6 +196,7 @@ Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 - `src/agentready/templates/python/template/scripts/module_knowledge.py.jinja`
 - `src/agentready/templates/python/template/scripts/package_check.py.jinja`
 - `src/agentready/templates/python/template/scripts/project.py`
+- `src/agentready/templates/python/template/scripts/repository_inventory.py.jinja`
 - `src/agentready/templates/python/template/scripts/skill_check.py`
 - `src/agentready/templates/python/template/scripts/skill_routes.py`
 - `src/agentready/templates/python/template/scripts/status.py`
@@ -232,6 +235,10 @@ Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 - `tests/test_project.py`
 - `tests/test_skill_contract.py`
 - `tests/test_smoke.py`
+- `tests/test_stress_diagnostics.py`
+- `tests/test_stress_guidance.py`
+- `tests/test_stress_inventory.py`
+- `tests/test_stress_maintenance.py`
 - `tests/test_work_registry.py`
 
 ### `uv.lock`

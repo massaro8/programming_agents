@@ -88,6 +88,9 @@ def generate_project(target: Path, profile: str = DEFAULT_PROFILE) -> Project:
         "profile": selected_profile.name,
         "generator_version": __version__,
         "ownership": ownership,
+        "inventory_source": resources.files("agentready.core")
+        .joinpath("inventory.py")
+        .read_text(encoding="utf-8"),
     }
     with ExitStack() as stack:
         template = stack.enter_context(

@@ -86,6 +86,7 @@ def test_qualify_independent_generated_project(tmp_path: Path, profile: str) -> 
         "scripts/work_registry.py",
         "scripts/project.py",
         "scripts/module_knowledge.py",
+        "scripts/repository_inventory.py",
         "scripts/context.py",
         "scripts/status.py",
         "scripts/package_check.py",

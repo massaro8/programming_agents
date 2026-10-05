@@ -32,6 +32,7 @@ SHARED = [
     "scripts/work_registry.py",
     "scripts/project.py",
     "scripts/module_knowledge.py",
+    "scripts/repository_inventory.py",
     "scripts/skill_routes.py",
     "scripts/skill_check.py",
     "scripts/context.py",

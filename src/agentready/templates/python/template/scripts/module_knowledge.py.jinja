@@ -7,7 +7,9 @@ import keyword
 import re
 import subprocess
 import sys
-from pathlib import Path
+from pathlib import Path, PurePosixPath
+
+from repository_inventory import discover
 
 MODULE_NAME = re.compile(r"^[a-z][a-z0-9_]*$")
 FIELDS = (
@@ -27,14 +29,7 @@ def _modules(root: Path) -> set[str]:
     package_dirs = [path for path in package.iterdir() if path.is_dir()] if package.is_dir() else []
     if len(package_dirs) != 1:
         raise ValueError("expected exactly one package directory under src/")
-    modules_root = package_dirs[0] / "modules"
-    if not modules_root.is_dir():
-        return set()
-    return {
-        path.name
-        for path in modules_root.iterdir()
-        if path.is_dir() and not path.name.startswith((".", "__"))
-    }
+    return {module.name for module in discover(root, package_dirs[0].name).modules}
 
 
 def _read_card(path: Path, expected_name: str) -> str:
@@ -42,17 +37,67 @@ def _read_card(path: Path, expected_name: str) -> str:
         raise ValueError(f"unsafe or missing module card: {path.relative_to(path.parents[2])}")
     text = path.read_text(encoding="utf-8")
     lines = text.splitlines()
-    if len(lines) != 5 or lines[0] != f"# {expected_name}":
-        raise ValueError(f"invalid module card format: {path}")
+    if not lines or lines[0] != f"# {expected_name}":
+        raise ValueError(f"invalid module card heading: expected '# {expected_name}' in {path}")
+    field_lines = lines[1:]
+    found = [line.split(":", 1)[0] for line in field_lines if ":" in line]
+    missing = [field for field in FIELDS if field not in found]
+    extra = [name for name in found if name not in FIELDS]
+    duplicate = [field for field in FIELDS if found.count(field) > 1]
+    if missing or extra or duplicate:
+        details = []
+        if missing:
+            details.append(f"missing fields: {', '.join(missing)}")
+        if extra:
+            details.append(f"unexpected fields: {', '.join(extra)}")
+        if duplicate:
+            details.append(f"duplicate fields: {', '.join(duplicate)}")
+        raise ValueError(
+            f"invalid module card structure in {path}: {'; '.join(details)}. "
+            f"Required order: {', '.join(FIELDS)}."
+        )
+    actual_order = [
+        line.split(":", 1)[0] if ":" in line else "<unrecognized line>" for line in field_lines
+    ]
+    if actual_order != list(FIELDS):
+        raise ValueError(
+            f"invalid module card field order in {path}: expected "
+            f"'{', '.join(FIELDS)}', found '{', '.join(actual_order)}'"
+        )
     values: dict[str, str] = {}
-    for line, field in zip(lines[1:5], FIELDS, strict=True):
+    for line, field in zip(field_lines, FIELDS, strict=True):
         prefix = f"{field}: "
         if not line.startswith(prefix):
-            raise ValueError(f"invalid {field} field in module card: {path}")
+            raise ValueError(
+                f"invalid {field} field in module card {path}: expected '{prefix}<value>'"
+            )
         value = line[len(prefix) :].strip()
-        if not value or "\n" in value:
-            raise ValueError(f"empty or multiline {field} in module card: {path}")
+        if not value:
+            detail = "must be a non-empty single-line value"
+            if field == "Tests":
+                detail += " (use a test reference or 'Not documented.')"
+            raise ValueError(f"invalid {field} field in module card {path}: {detail}")
         values[field] = value
+    tests_value = values["Tests"]
+    if tests_value.lower() != "not documented.":
+        references = [
+            part.strip().removesuffix(".").strip().strip("`").removesuffix("/")
+            for part in tests_value.split(",")
+        ]
+        invalid = [
+            reference
+            for reference in references
+            if (reference != "tests" and not reference.startswith("tests/"))
+            or "\\" in reference
+            or PurePosixPath(reference).is_absolute()
+            or any(part in {"", ".", ".."} for part in reference.split("/"))
+        ]
+        if invalid:
+            raise ValueError(
+                f"invalid Tests field in module card {path}: {', '.join(invalid)}; "
+                "use 'Not documented.' or comma-separated repository-relative paths rooted "
+                "under tests/ (optional backticks and a final period are allowed)"
+            )
     responsibility = values["Responsibility"]
     if len(responsibility) < 12 or responsibility.lower() in {
         "todo",

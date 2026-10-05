@@ -110,9 +110,15 @@ def parse(path: Path) -> Work:
     if len(re.findall(r"^(?:Type|Status):", text, re.MULTILINE)) != 2:
         raise RegistryError(f"duplicate or malformed work metadata in {path.name}")
     if kind not in TYPES:
-        raise RegistryError(f"invalid work type in {path.name}")
+        raise RegistryError(
+            f"invalid work type in {path.name}: found {kind!r}; "
+            f"choose one of: {', '.join(TYPES)} (Type is on metadata line 3)"
+        )
     if status not in STATUSES:
-        raise RegistryError(f"invalid work status in {path.name}")
+        raise RegistryError(
+            f"invalid work status in {path.name}: found {status!r}; "
+            f"choose one of: {', '.join(STATUSES)} (Status is on metadata line 4)"
+        )
     work = Work(number, work_id, title, kind, status, path.name, text)
     if status == "DONE":
         validate_done(work)
@@ -143,10 +149,14 @@ def validate_done(work: Work) -> None:
             raise error
         if not value or value in {"NOT_STARTED", "BLOCKED", "TODO"} or value.startswith("<"):
             raise RegistryError(
-                f"DONE item {work.work_id} has incomplete implementation record: {label}"
+                f"DONE item {work.work_id} has missing or incomplete implementation record "
+                f"field '{label}' under '## Implementation record'"
+                + ("; expected Result: COMPLETE" if label == "Result" else "")
             )
     if _field(record, "Result") != "COMPLETE":
-        raise RegistryError(f"DONE item {work.work_id} result must be COMPLETE")
+        raise RegistryError(
+            f"DONE item {work.work_id} requires Result: COMPLETE under '## Implementation record'"
+        )
     if work.kind == "BUGFIX" and any(
         not (value := _field(record, label)) or value.startswith("<")
         for label in ("Confirmed root cause", "Regression test")
@@ -157,11 +167,19 @@ def validate_done(work: Work) -> None:
     breaking = _field(changelog, "Breaking")
     migration = _field(changelog, "Migration")
     if not summary or summary in {"TODO", "<...>"} or summary.startswith("<"):
-        raise RegistryError(f"DONE item {work.work_id} requires a changelog summary")
+        raise RegistryError(
+            f"DONE item {work.work_id} requires a non-empty Summary under '## Changelog'"
+        )
     if impact not in {"NONE", "INTERNAL", "USER_VISIBLE"}:
-        raise RegistryError(f"DONE item {work.work_id} has invalid user impact")
+        raise RegistryError(
+            f"DONE item {work.work_id} has missing or invalid User impact {impact!r} under "
+            "'## Changelog'; choose NONE, INTERNAL, or USER_VISIBLE"
+        )
     if breaking not in {"NO", "YES"} or not migration or migration.startswith("<"):
-        raise RegistryError(f"DONE item {work.work_id} requires breaking and migration values")
+        raise RegistryError(
+            f"DONE item {work.work_id} requires Breaking (YES or NO) and a non-empty Migration "
+            "under '## Changelog'"
+        )
     if breaking == "YES" and migration.strip().upper() in {
         "NOT_REQUIRED",
         "NONE",
@@ -184,8 +202,17 @@ def validate_done(work: Work) -> None:
             is not None
         )
         if value not in allowed and not adr_path:
+            expected = {
+                "README": "NOT_REQUIRED or UPDATED",
+                "ARCHITECTURE": "NOT_REQUIRED or UPDATED",
+                "ADR": "NOT_REQUIRED, UPDATED, or CREATED/UPDATED docs/adr/NNNN-slug.md",
+                "OTHER": "NONE or UPDATED",
+            }[label]
             raise RegistryError(
-                f"DONE item {work.work_id} has unevaluated documentation impact: {label}"
+                f"DONE item {work.work_id} has missing or invalid documentation impact "
+                f"'{label}' value {value!r} under '## Documentation impact'; expected {expected}. "
+                "Keep the enum value alone (ADR paths use the stated grammar); place rationale "
+                "in '## Implementation record', under '### Design decisions'."
             )
 
 
