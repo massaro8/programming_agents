@@ -21,6 +21,10 @@ COMMANDS = (
     "context",
     "status",
     "module",
+    "skill",
+    "hooks",
+    "checkpoint",
+    "resume",
 )
 
 
@@ -61,6 +65,18 @@ def check_commands(uv: str) -> list[tuple[str, list[str]]]:
 
 def execute(task: str, arguments: list[str] | None = None) -> int:
     arguments = arguments or []
+    if task == "skill":
+        from skill_qa import main as skill_main
+
+        return skill_main(arguments, ROOT)
+    if task == "hooks":
+        from hooks import main as hooks_main
+
+        return hooks_main(arguments, ROOT)
+    if task in ("checkpoint", "resume"):
+        from continuity import main as continuity_main
+
+        return continuity_main([task, *arguments], ROOT)
     if task in ("context", "next"):
         from context import main as context_main
 
@@ -131,7 +147,12 @@ def main(argv: list[str] | None = None) -> int:
     module.add_argument("action", choices=("new", "check"))
     module.add_argument("name", nargs="?")
     module.add_argument("--responsibility")
+    for name in ("skill", "hooks", "checkpoint", "resume"):
+        capability = commands.add_parser(name)
+        capability.add_argument("arguments", nargs=argparse.REMAINDER)
     args = parser.parse_args(argv)
+    if args.command in ("skill", "hooks", "checkpoint", "resume"):
+        return execute(args.command, args.arguments)
     if args.command == "context":
         parameters = ["--format", args.format]
         if args.work_id:

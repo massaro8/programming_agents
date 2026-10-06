@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "skill": "bug-investigation",
+  "include": [
+    "defect"
+  ],
+  "exclude": [
+    "typo"
+  ],
+  "cases": [
+    {
+      "id": "positive",
+      "task": "defect in the scoped work item",
+      "trigger": true,
+      "criteria": [
+        "affected_tests_identified",
+        "validation_executed",
+        "final_evidence_produced",
+        "regression_test_added"
+      ]
+    },
+    {
+      "id": "negative",
+      "task": "Fix typo",
+      "trigger": false,
+      "criteria": []
+    }
+  ]
+}

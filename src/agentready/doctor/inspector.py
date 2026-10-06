@@ -9,9 +9,10 @@ from enum import Enum
 from pathlib import Path
 
 from agentready.core.ownership import ArtifactOwnership, OwnershipClass
-from agentready.core.profiles import get_profile
+from agentready.core.profiles import EVOLUTION_SHARED, get_profile
 from agentready.core.project import Project, ProjectPath
 from agentready.doctor.codebase_map import validate as validate_codebase_map
+from agentready.doctor.evolution import validate as validate_evolution
 from agentready.doctor.work import validate as validate_work
 
 CHECKS = (
@@ -27,6 +28,10 @@ CHECKS = (
     "repository.codebase_map",
     "repository.independence",
     "work.registry",
+    "skills.contract",
+    "skills.evals",
+    "hooks.config",
+    "work.checkpoints",
     "detach.ready",
 )
 
@@ -233,7 +238,13 @@ def inspect(root: Path | str = ".") -> DoctorReport:
                 }
                 for cls in OwnershipClass
             }
-            paths_ok = all(actual[cls] == expected[cls] for cls in OwnershipClass)
+            optional = set(EVOLUTION_SHARED)
+            paths_ok = all(
+                actual[cls] <= expected[cls]
+                and expected[cls] - actual[cls]
+                <= (optional if cls is OwnershipClass.SHARED else set())
+                for cls in OwnershipClass
+            )
     findings.append(
         _finding(
             "ownership.paths",
@@ -326,7 +337,11 @@ def inspect(root: Path | str = ".") -> DoctorReport:
     )
     package = project.path.name.replace("-", "_")
     required = profile_contract.required_paths(package) if profile_contract is not None else ()
-    structure_ok = all(_safe_file(project, str(path)) for path in required) and all(
+    structure_ok = all(
+        _safe_file(project, str(path))
+        for path in required
+        if path.as_posix() not in EVOLUTION_SHARED
+    ) and all(
         (project.path / x).is_dir() and not (project.path / x).is_symlink()
         for x in ("src", "tests")
     )
@@ -376,6 +391,8 @@ def inspect(root: Path | str = ".") -> DoctorReport:
     )
     work_ok, work_message, work_path = validate_work(project)
     findings.append(_finding("work.registry", work_ok, work_message, work_path))
+    for identity, (ok, message) in validate_evolution(project.path).items():
+        findings.append(_finding(identity, ok, message))
     prerequisites = all(f.status is FindingStatus.PASS for f in findings[1:])
     findings.append(
         _finding(
@@ -398,6 +415,8 @@ def format_report(report: DoctorReport) -> str:
         "guidance": "Agent guidance",
         "repository": "Repository",
         "work": "Work registry",
+        "skills": "Skill QA",
+        "hooks": "Optional hooks",
         "detach": "Detach readiness",
     }
     current = ""

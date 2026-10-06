@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "skill": "project-bootstrap",
+  "include": [
+    "initialize"
+  ],
+  "exclude": [
+    "typo"
+  ],
+  "cases": [
+    {
+      "id": "positive",
+      "task": "initialize the scoped work",
+      "trigger": true,
+      "criteria": [
+        "final_evidence_produced"
+      ]
+    },
+    {
+      "id": "negative",
+      "task": "Fix typo in README",
+      "trigger": false,
+      "criteria": []
+    }
+  ]
+}

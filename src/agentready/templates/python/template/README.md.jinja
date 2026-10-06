@@ -14,6 +14,19 @@ From the project directory, run `python scripts/project.py check` for registry, 
 
 ## Developer navigation
 
+Use `python scripts/project.py skill check` for Skill Contract v1 and
+`python scripts/project.py skill eval feature-builder` for lexical trigger fixtures. Behavioral
+observations come from an external run via `--results`; no model is invoked.
+`python scripts/project.py checkpoint W001` records durable state and
+`python scripts/project.py resume W001` reports staleness. Explicit state input uses `--state`;
+existing checkpoints require `--replace`.
+
+Hooks are disabled by default and require explicit activation. AgentReady does not change global
+agent configuration. Inspect `python scripts/project.py hooks list`, preview with `hooks enable
+safe-shell --dry-run`, then activate explicitly. A developer or host invokes `hooks check` to
+preflight a command; it never executes commands or installs automatic interception. Config,
+evidence, checkpoints and stdlib scripts remain usable after detach. See agent guidance below.
+
 - [Architecture](docs/ARCHITECTURE.md)
 - [Work registry](docs/work/index.md)
 - [Changelog](docs/changelog/index.md)

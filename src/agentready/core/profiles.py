@@ -15,6 +15,27 @@ from agentready.core.ownership import OwnershipClass
 DEFAULT_PROFILE = "minimal"
 SUPPORTED_PROFILES = ("minimal", "application", "service")
 
+# Additive capability artifacts: old schema-1 repositories remain valid without them.
+EVOLUTION_SHARED = (
+    "scripts/local_paths.py",
+    "scripts/skill_qa.py",
+    "scripts/hooks.py",
+    "scripts/continuity.py",
+    *(
+        f".agents/skills/{name}/evals/cases.json"
+        for name in (
+            "repo-explore",
+            "module-placement",
+            "feature-builder",
+            "bug-investigation",
+            "refactoring",
+            "maintenance",
+            "documentation",
+            "security-review",
+        )
+    ),
+)
+
 _COMMON_PROJECT_OWNED = (
     ".github/workflows/ci.yml",
     ".gitignore",
@@ -144,7 +165,7 @@ class ProfileContract:
         source = tuple(path.format(package=package) for path in self.profile_files)
         return {
             OwnershipClass.PROJECT_OWNED: (*_COMMON_PROJECT_OWNED, *source),
-            OwnershipClass.SHARED: _COMMON_SHARED,
+            OwnershipClass.SHARED: (*_COMMON_SHARED, *EVOLUTION_SHARED),
             OwnershipClass.GENERATED: _COMMON_GENERATED,
         }
 

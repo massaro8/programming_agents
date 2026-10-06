@@ -28,3 +28,15 @@ Stop if authorization or defensive purpose is unclear, active exposure appears l
 
 ## Evidence of completion
 Review-only returns evidence without edits. Implementation has regression coverage, passing checks, and a completed READY item.
+
+## Purpose
+A ready security item or a requested defensive review of trust boundaries, secrets, filesystem safety, execution, parsing, inputs, or dependencies.
+
+## Positive triggers
+Use for a READY SECURITY item or a requested defensive review of trust boundaries, secrets, filesystem safety, execution, parsing, inputs, or dependencies.
+
+## Exclusions
+Do not use for unrelated stylistic changes or offensive exploitation.
+
+## Output contract
+Return a concise outcome, changed files or findings, verification evidence, and unresolved risks. Preserve the owning work item as the durable implementation record.

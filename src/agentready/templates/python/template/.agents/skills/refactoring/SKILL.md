@@ -27,3 +27,15 @@ Stop if baseline behavior is unknown, acceptance requires behavior change, or tr
 
 ## Evidence of completion
 Observable behavior remains equivalent, checks pass, and the refactor record is complete and DONE.
+
+## Purpose
+A ready refactor item that changes internal structure while preserving observable behavior and documented contracts.
+
+## Positive triggers
+Use for a READY REFACTOR item that changes internal structure while preserving observable behavior and documented contracts.
+
+## Exclusions
+Do not use when observable behavior intentionally changes or acceptance is absent.
+
+## Output contract
+Return a concise outcome, changed files or findings, verification evidence, and unresolved risks. Preserve the owning work item as the durable implementation record.

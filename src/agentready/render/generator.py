@@ -92,6 +92,13 @@ def generate_project(target: Path, profile: str = DEFAULT_PROFILE) -> Project:
         .joinpath("inventory.py")
         .read_text(encoding="utf-8"),
     }
+    for module in ("local_paths", "skill_qa", "hooks", "continuity"):
+        data[f"{module}_source"] = (
+            resources.files("agentready")
+            .joinpath(f"{module}.py")
+            .read_text(encoding="utf-8")
+            .replace("from agentready.local_paths import", "from local_paths import")
+        )
     with ExitStack() as stack:
         template = stack.enter_context(
             resources.as_file(resources.files("agentready.templates.python"))

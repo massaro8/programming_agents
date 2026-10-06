@@ -55,6 +55,32 @@ Acceptance:
 - generated project still builds/tests/lints afterward;
 - normal Codex/Claude usage does not require AgentReady.
 
+### Repository-local skill QA, hooks and continuity
+
+`agentready skill check [name]` validates Skill Contract v1; `skill eval <name>` validates portable
+case definitions, evaluates lexical trigger fixtures and scores externally reported behavioral
+observations. Neither invokes a model or agent. `--case` selects a case; `--results` ingests
+repository-local results; JSON output preserves evidence and missing observations.
+
+`agentready hooks` lists/inspects/configures named local recipes and explicitly enables/disables
+them, with dry-run for every mutation. Acceptance: zero hooks enabled by init; no global agent,
+Git or shell configuration changes; strict configuration; warn/block safety preflight; no command
+execution; evidence excludes command arguments and output. Host/developer invocation is explicit;
+no automatic agent callback or completion claim is installed.
+
+`agentready checkpoint Wxxx` captures bounded durable work state, optionally from `--state`.
+`agentready resume Wxxx` returns compact context and staleness warnings. Acceptance: reject missing
+work, treat DONE work as non-actionable, require explicit checkpoint replacement, detect changed
+revision/tracked contents/referenced files and stale validation, and reject recognizable secret
+patterns. Current repository state always outranks checkpoint claims.
+
+Doctor composes contract/eval/config/checkpoint checks without executing repository code. ERRORs
+fail; WARNING/INFO remain advisory within the compatible schema-1 finding messages. Old manifests
+may omit additive shared artifacts; missing v1 sections in legacy skills are advisory. Generated
+projects ship identical stdlib implementations usable through `scripts/project.py` after detach.
+Local hook config, checkpoints and evidence remain project-owned outside `.agentready/`.
+See [the detailed contracts](SKILL_QA_AND_CONTINUITY.md).
+
 ## Explicit non-goals for V0.1
 
 - no cloud service;

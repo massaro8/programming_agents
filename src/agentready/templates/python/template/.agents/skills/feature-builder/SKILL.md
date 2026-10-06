@@ -30,3 +30,15 @@ Stop before coding when scope, acceptance, ownership, or a required external dec
 
 ## Evidence of completion
 Acceptance criteria are met, relevant checks pass, the work record is complete, indexes are synced, and the item is DONE.
+
+## Purpose
+Implementing a non-trivial feature from a scoped, human-owned ready feature item with explicit acceptance criteria.
+
+## Positive triggers
+Use for implementing a non-trivial feature from a scoped, human-owned READY FEATURE item with explicit acceptance criteria.
+
+## Exclusions
+Do not use for typo-only edits, investigation without accepted scope, or bugs requiring reproduction.
+
+## Output contract
+Return a concise outcome, changed files or findings, verification evidence, and unresolved risks. Preserve the owning work item as the durable implementation record.

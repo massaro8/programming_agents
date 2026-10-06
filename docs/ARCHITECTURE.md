@@ -124,6 +124,24 @@ structure. Capability cards remain project-owned; private helper files need not 
 
 ## Data / network
 
+### Feature evolution and extension decision
+
+EXTENSION SYSTEM: NOT JUSTIFIED
+
+Skill QA, hooks and checkpoints are normal deterministic Python modules. Their identical source
+is exported as standalone local scripts using the existing inventory source-rendering seam.
+`local_paths.py` owns their common bounded repository file boundary; it is not a plugin abstraction.
+Doctor composes read-only validators, and existing profile ownership lists describe shipped files.
+Runtime configuration, checkpoint state and evidence remain project-owned outside `.agentready/`.
+
+Only hooks have configure/enable/disable lifecycle. Skills are checked/scored, while checkpoints
+are created/resumed; these are not two consumers of a common component lifecycle. None requires
+independent versioning or a near-term outside maintainer. Existing rendering/ownership and doctor
+seams already avoid duplicated lifecycle logic. An extension layer would add more concepts than
+it removes. Revisit only with two concrete independently versioned capabilities sharing lifecycle
+operations and demonstrated duplication that ordinary modules cannot contain. No dynamic loading,
+agent adapters, third-party installation or registry is introduced.
+
 V0.1 stores only local metadata. No backend, account, API key, telemetry, or remote AgentReady service is
 required for normal operation.
 

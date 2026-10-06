@@ -27,3 +27,15 @@ Request a decision when sources conflict or the audience/behavior is undefined. 
 
 ## Evidence of completion
 Canonical docs express accepted behavior, links and examples are checked, documentation impact is recorded, and the item is DONE.
+
+## Purpose
+A ready docs item that changes project guidance, reference material, examples, or user-facing documentation.
+
+## Positive triggers
+Use for a READY DOCS item that changes project guidance, reference material, examples, or user-facing documentation.
+
+## Exclusions
+Do not use for production behavior changes requiring implementation.
+
+## Output contract
+Return a concise outcome, changed files or findings, verification evidence, and unresolved risks. Preserve the owning work item as the durable implementation record.

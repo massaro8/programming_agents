@@ -44,12 +44,27 @@ def build_parser() -> argparse.ArgumentParser:
     doctor_parser.add_argument("--format", choices=("human", "json"), default="human")
     detach_parser = subparsers.add_parser("detach", help="remove AgentReady maintenance metadata")
     detach_parser.add_argument("path", nargs="?", type=Path, default=Path("."))
+    for command in ("skill", "hooks", "checkpoint", "resume"):
+        capability = subparsers.add_parser(command, help=f"repository-local {command} tools")
+        capability.add_argument("--path", type=Path, default=Path("."))
+        capability.add_argument("arguments", nargs=argparse.REMAINDER)
     return parser
 
 
 def main(argv: Sequence[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
+    if args.command in ("skill", "hooks", "checkpoint", "resume"):
+        if args.command == "skill":
+            from agentready.skill_qa import main as capability_main
+        elif args.command == "hooks":
+            from agentready.hooks import main as capability_main
+        else:
+            from agentready.continuity import main as capability_main
+        parameters = args.arguments
+        if args.command in ("checkpoint", "resume"):
+            parameters = [args.command, *parameters]
+        return capability_main(parameters, args.path.absolute())
     if args.command == "init":
         try:
             generate_project(args.target, profile=args.profile)

@@ -1,5 +1,11 @@
 # AgentReady
 
+Skill QA, optional local hooks and Wxxx checkpoints are available through `agentready skill`,
+`agentready hooks`, `agentready checkpoint` and `agentready resume`. Generated repositories expose
+the same tools through `python scripts/project.py` after detach. Hooks are disabled by default
+and require explicit activation; AgentReady does not change global agent configuration.
+See [the contract, eval and continuity guide](docs/SKILL_QA_AND_CONTINUITY.md).
+
 > Bootstrap once. Own the repository forever.
 
 AgentReady is a small, vendor-neutral CLI that generates a Python repository with concise coding-

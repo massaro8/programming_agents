@@ -76,6 +76,23 @@ def test_qualify_independent_generated_project(tmp_path: Path, profile: str) -> 
     assert manifest["generator"] == "agentready" and manifest["generator_version"]
     ownership = {key: set(value) for key, value in manifest["ownership"].items()}
     assert ownership["shared"] == {
+        "scripts/local_paths.py",
+        "scripts/skill_qa.py",
+        "scripts/hooks.py",
+        "scripts/continuity.py",
+        *{
+            f".agents/skills/{name}/evals/cases.json"
+            for name in (
+                "repo-explore",
+                "module-placement",
+                "feature-builder",
+                "bug-investigation",
+                "refactoring",
+                "maintenance",
+                "documentation",
+                "security-review",
+            )
+        },
         "AGENTS.md",
         "docs/work/templates/feature.md",
         "docs/work/templates/bugfix.md",

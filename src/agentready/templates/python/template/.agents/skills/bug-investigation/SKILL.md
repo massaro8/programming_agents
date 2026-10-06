@@ -28,3 +28,15 @@ Do not guess expected behavior. Stop and report evidence when the issue cannot b
 
 ## Evidence of completion
 The failure is reproduced, a regression test covers it, focused checks pass, and the READY item is recorded and DONE.
+
+## Purpose
+A reported defect with observable incorrect behavior that needs reproduction, root cause, and a regression fix.
+
+## Positive triggers
+Use for a reported defect with observable incorrect behavior that needs reproduction, root cause, and a regression fix.
+
+## Exclusions
+Do not use for a new feature or a typo-only edit with no behavioral defect.
+
+## Output contract
+Return a concise outcome, changed files or findings, verification evidence, and unresolved risks. Preserve the owning work item as the durable implementation record.

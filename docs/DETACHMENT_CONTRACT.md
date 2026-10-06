@@ -26,3 +26,7 @@ G. assert AGENTS.md/selected agent adapter remains usable
 ```
 
 This contract is a product invariant, not a documentation promise.
+
+Optional hook configuration (`docs/agent/hooks.json`), execution evidence and Wxxx checkpoints
+(`docs/work/evidence/`, `docs/work/checkpoints/`) are project-owned and survive detach. Their shared
+stdlib scripts remain usable without AgentReady. Detach still removes only `.agentready/`.

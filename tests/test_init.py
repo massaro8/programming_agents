@@ -68,6 +68,23 @@ SHARED = [
     ".agents/skills/maintenance/SKILL.md",
     ".agents/skills/documentation/SKILL.md",
     ".agents/skills/security-review/SKILL.md",
+    "scripts/local_paths.py",
+    "scripts/skill_qa.py",
+    "scripts/hooks.py",
+    "scripts/continuity.py",
+    *[
+        f".agents/skills/{name}/evals/cases.json"
+        for name in (
+            "repo-explore",
+            "module-placement",
+            "feature-builder",
+            "bug-investigation",
+            "refactoring",
+            "maintenance",
+            "documentation",
+            "security-review",
+        )
+    ],
 ]
 GENERATED = [
     "CLAUDE.md",

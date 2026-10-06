@@ -27,3 +27,15 @@ Stop if the requested version is unsupported, lock resolution changes unrelated 
 
 ## Evidence of completion
 Configuration and lock data agree, compatibility checks pass, changes are recorded, and the READY item is DONE.
+
+## Purpose
+A ready maintenance item changing dependencies, developer tooling, ci, packaging, or supported runtime versions.
+
+## Positive triggers
+Use for a READY MAINTENANCE item changing dependencies, developer tooling, CI, packaging, or supported runtime versions.
+
+## Exclusions
+Do not use for application features or documentation-only edits.
+
+## Output contract
+Return a concise outcome, changed files or findings, verification evidence, and unresolved risks. Preserve the owning work item as the durable implementation record.

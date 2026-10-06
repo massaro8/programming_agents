@@ -6,6 +6,8 @@ import re
 import sys
 from pathlib import Path
 
+from skill_qa import check as check_contract
+from skill_qa import definition
 from skill_routes import EXPECTED_SKILLS, ROUTES, SECURITY_MODES
 
 
@@ -81,6 +83,12 @@ def check(root: Path) -> None:
                 raise SkillCheckError(f"missing route context for {kind}: {target}")
     if set(SECURITY_MODES) != {"review-only", "implementation"}:
         raise SkillCheckError("security modes are incomplete")
+    issues = check_contract(root)
+    errors = [issue for issue in issues if issue["severity"] == "ERROR"]
+    if errors:
+        raise SkillCheckError(str(errors))
+    for name in EXPECTED_SKILLS:
+        definition(root, name)
 
 
 def main() -> int:

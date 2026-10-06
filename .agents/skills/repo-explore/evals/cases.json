@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "skill": "repo-explore",
+  "include": [
+    "locate"
+  ],
+  "exclude": [
+    "typo"
+  ],
+  "cases": [
+    {
+      "id": "positive",
+      "task": "locate the scoped work",
+      "trigger": true,
+      "criteria": [
+        "final_evidence_produced"
+      ]
+    },
+    {
+      "id": "negative",
+      "task": "Fix typo in README",
+      "trigger": false,
+      "criteria": []
+    }
+  ]
+}

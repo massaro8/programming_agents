@@ -26,3 +26,15 @@ Stop when responsibility crosses ownership boundaries or guidance conflicts. Req
 
 ## Evidence of completion
 Owner and path follow boundaries, nearby patterns were checked, and architecture validation passes when code moved.
+
+## Purpose
+Use before creating or moving a source module when its architectural owner, layer, or package location is uncertain.
+
+## Positive triggers
+Use before creating or moving a source module when its architectural owner, layer, or package location is uncertain.
+
+## Exclusions
+Do not use for an edit within an already established module boundary.
+
+## Output contract
+Return a concise outcome, changed files or findings, verification evidence, and unresolved risks. Preserve the owning work item as the durable implementation record.

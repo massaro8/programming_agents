@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "skill": "module-placement",
+  "include": [
+    "module"
+  ],
+  "exclude": [
+    "typo"
+  ],
+  "cases": [
+    {
+      "id": "positive",
+      "task": "module in the scoped work item",
+      "trigger": true,
+      "criteria": [
+        "affected_tests_identified",
+        "validation_executed",
+        "final_evidence_produced"
+      ]
+    },
+    {
+      "id": "negative",
+      "task": "Fix typo",
+      "trigger": false,
+      "criteria": []
+    }
+  ]
+}

@@ -26,3 +26,15 @@ Do not edit files or run mutating commands. Stop when answered or evidence is in
 
 ## Evidence of completion
 Report identifies owner, entry points, behavior path, tests/contracts, boundaries, and unresolved questions with source paths.
+
+## Purpose
+Locate ownership, behavior, boundaries, or tests in an unfamiliar repository area before planning implementation.
+
+## Positive triggers
+Use to locate ownership, behavior, boundaries, or tests in an unfamiliar repository area before planning implementation.
+
+## Exclusions
+Do not edit code in this skill; use a scoped implementation workflow after localization.
+
+## Output contract
+Return a concise outcome, changed files or findings, verification evidence, and unresolved risks. Preserve the owning work item as the durable implementation record.
