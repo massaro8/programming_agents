@@ -25,7 +25,27 @@ COMMANDS = (
     "hooks",
     "checkpoint",
     "resume",
+    "work",
+    "route",
 )
+FORWARDED = ("skill", "hooks", "checkpoint", "resume", "work", "route")
+HELP = {
+    "bootstrap": "Install dependencies and check the project",
+    "check": "Run required repository checks",
+    "verify": "Run checks and build the package",
+    "package-check": "Validate the distributable package",
+    "sync": "Refresh work indexes and the codebase map",
+    "next": "Show context for the next READY work item",
+    "context": "Show focused context for a work item",
+    "status": "Show repository and work status",
+    "module": "Create or check module knowledge",
+    "skill": "Evaluate portable skills (skill eval --help)",
+    "hooks": "Inspect or configure opt-in repository hooks",
+    "checkpoint": "Save work continuity evidence",
+    "resume": "Validate a saved checkpoint before continuing work",
+    "work": "Create, list, check, sync, or transition work items",
+    "route": "Resolve skill and model routing from task evidence",
+}
 
 
 def run(stage: str, command: list[str]) -> int:
@@ -65,6 +85,14 @@ def check_commands(uv: str) -> list[tuple[str, list[str]]]:
 
 def execute(task: str, arguments: list[str] | None = None) -> int:
     arguments = arguments or []
+    if task == "work":
+        from work_registry import main as work_main
+
+        return work_main(arguments)
+    if task == "route":
+        from skill_routes import main as route_main
+
+        return route_main(arguments)
     if task == "skill":
         from skill_qa import main as skill_main
 
@@ -132,26 +160,30 @@ def execute(task: str, arguments: list[str] | None = None) -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
+    arguments = list(sys.argv[1:] if argv is None else argv)
+    # Let each capability parse its own options, including --help.
+    if arguments and arguments[0] in FORWARDED:
+        return execute(arguments[0], arguments[1:])
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
     for name in COMMANDS[:6]:
-        commands.add_parser(name)
-    context = commands.add_parser("context")
+        commands.add_parser(name, help=HELP[name])
+    context = commands.add_parser("context", help=HELP["context"])
     target = context.add_mutually_exclusive_group()
     target.add_argument("--next", action="store_true")
     target.add_argument("work_id", nargs="?")
     context.add_argument("--format", choices=("text", "json"), default="text")
-    status = commands.add_parser("status")
+    status = commands.add_parser("status", help=HELP["status"])
     status.add_argument("--format", choices=("text", "json"), default="text")
-    module = commands.add_parser("module")
+    module = commands.add_parser("module", help=HELP["module"])
     module.add_argument("action", choices=("new", "check"))
     module.add_argument("name", nargs="?")
     module.add_argument("--responsibility")
-    for name in ("skill", "hooks", "checkpoint", "resume"):
-        capability = commands.add_parser(name)
+    for name in FORWARDED:
+        capability = commands.add_parser(name, help=HELP[name])
         capability.add_argument("arguments", nargs=argparse.REMAINDER)
-    args = parser.parse_args(argv)
-    if args.command in ("skill", "hooks", "checkpoint", "resume"):
+    args = parser.parse_args(arguments)
+    if args.command in FORWARDED:
         return execute(args.command, args.arguments)
     if args.command == "context":
         parameters = ["--format", args.format]

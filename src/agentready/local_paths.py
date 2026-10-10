@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import json
 import re
+from collections.abc import Iterator
+from contextlib import contextmanager
 from pathlib import Path, PureWindowsPath
 from typing import Any
 
@@ -72,6 +74,26 @@ def write_json(root: Path, relative: str, data: dict[str, Any]) -> None:
     path = local_path(root, relative)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8", newline="\n")
+
+
+@contextmanager
+def repository_write(root: Path, relative: str) -> Iterator[None]:
+    """Reject competing writers during an artifact's read/modify/write operation."""
+    lock_relative = relative + ".lock"
+    path = local_path(root, lock_relative)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        stream = path.open("x", encoding="utf-8")
+    except FileExistsError as exc:
+        raise ValueError(
+            f"repository update in progress: {relative}; retry after the writer finishes. "
+            f"If interrupted, remove {lock_relative} only after confirming no writer is running"
+        ) from exc
+    try:
+        yield
+    finally:
+        stream.close()
+        local_path(root, lock_relative).unlink()
 
 
 def durable_text(value: object) -> str:

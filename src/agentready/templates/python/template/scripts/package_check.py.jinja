@@ -42,7 +42,8 @@ def check(root: Path, uv: str) -> int:
         print(f"package check failed during project inspection: {exc}", file=sys.stderr)
         return 1
 
-    with tempfile.TemporaryDirectory(prefix="agentready-package-check-") as temporary:
+    # Keep owned scratch paths below Windows' ordinary-path limit for nested packages.
+    with tempfile.TemporaryDirectory(prefix="ar-check-") as temporary:
         work = Path(temporary)
         wheel_dir = work / "wheel"
         wheel_dir.mkdir()

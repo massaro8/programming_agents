@@ -8,10 +8,18 @@ import json
 import re
 import shutil
 import subprocess
+from contextlib import nullcontext
 from pathlib import Path
 from typing import Any
 
-from agentready.local_paths import durable_text, local_path, read_json, read_text, write_json
+from agentready.local_paths import (
+    durable_text,
+    local_path,
+    read_json,
+    read_text,
+    repository_write,
+    write_json,
+)
 
 FIELDS = {"objective", "files", "decisions", "validation", "risks", "questions", "next_step"}
 
@@ -148,10 +156,11 @@ def checkpoint(
         "hashes": hashes,
     }
     relative = f"docs/work/checkpoints/{work_id}.json"
-    if local_path(root, relative).exists() and not replace:
-        raise ValueError("checkpoint already exists; use --replace explicitly")
-    if not dry_run:
-        write_json(root, relative, data)
+    with repository_write(root, relative) if not dry_run else nullcontext():
+        if local_path(root, relative).exists() and not replace:
+            raise ValueError("checkpoint already exists; use --replace explicitly")
+        if not dry_run:
+            write_json(root, relative, data)
     return data
 
 

@@ -33,7 +33,7 @@ def validate(root: Path, package: str, profile: str, text: str | None) -> bool:
     adapters: set[str] = set()
     for module in modules:
         adapter_root = module_root / module / "adapters"
-        if adapter_root.is_symlink():
+        if adapter_root.is_symlink() or adapter_root.is_junction():
             return False
         if adapter_root.is_dir():
             try:

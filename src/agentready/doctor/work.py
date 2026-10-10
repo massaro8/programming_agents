@@ -186,12 +186,18 @@ def _render_changelog(items: list[_Work]) -> str:
 def validate(project: Project) -> tuple[bool, str, ProjectPath | None]:
     """Validate work metadata and exact generated indexes without executing project code."""
     directory = project.path / "docs" / "work"
-    if (project.path / "docs").is_symlink() or directory.is_symlink() or not directory.is_dir():
+    if (
+        any(
+            path.is_symlink() or path.is_junction()
+            for path in (project.path / "docs", directory, directory / "templates")
+        )
+        or not directory.is_dir()
+    ):
         return False, "work registry directory is missing or unsafe", ProjectPath(Path("docs/work"))
     templates = ("feature", "bugfix", "refactor", "maintenance", "documentation", "security")
     for name in templates:
         path = directory / "templates" / f"{name}.md"
-        if path.is_symlink() or not path.is_file():
+        if path.is_symlink() or path.is_junction() or not path.is_file():
             return (
                 False,
                 "work templates are missing or unsafe",
@@ -201,7 +207,7 @@ def validate(project: Project) -> tuple[bool, str, ProjectPath | None]:
     seen: set[int] = set()
     try:
         for path in sorted(directory.iterdir(), key=lambda entry: entry.name):
-            if path.is_symlink():
+            if path.is_symlink() or path.is_junction():
                 return (
                     False,
                     f"unsafe work entry: {path.name}",
@@ -229,7 +235,10 @@ def validate(project: Project) -> tuple[bool, str, ProjectPath | None]:
     ):
         path = project.path / relative
         project_path = ProjectPath(Path(relative))
-        if path.is_symlink() or not path.is_file():
+        if (
+            any(parent.is_symlink() or parent.is_junction() for parent in (path, path.parent))
+            or not path.is_file()
+        ):
             return False, f"{relative} is missing or unsafe", project_path
         try:
             actual = path.read_text(encoding="utf-8")

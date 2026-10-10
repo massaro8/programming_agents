@@ -19,5 +19,8 @@ Architecture invariants: place capabilities under `modules/<capability>/`; keep 
 
 Minimum coherent diff: make the smallest change that satisfies the acceptance criteria and avoid speculative directories, abstractions, or refactors.
 
-For implementation work, select one READY item, use its Type to choose the workflow in `docs/agent/index.md`, read its normative specification and only relevant standards, preserve requirements, update the implementation record and documentation impact, then sync the registry and changelog. If blocked, record why, mark BLOCKED, and stop.
+For new implementation work, select one READY item; accepted IN_PROGRESS work may continue directly.
+Create BACKLOG work with `python scripts/project.py work new`; after user authorization, author READY
+in its specification, run `work sync`, then `work transition <id> IN_PROGRESS`. See the feature workflow.
+Use its Type to choose the workflow in `docs/agent/index.md`, read its normative specification and only relevant standards, preserve requirements, update the implementation record and documentation impact, then sync the registry and changelog. If blocked, record why, mark BLOCKED, and stop.
 Human-owned work items live in `docs/work/`.

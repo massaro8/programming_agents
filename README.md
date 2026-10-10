@@ -1,148 +1,190 @@
 # AgentReady
 
-Skill QA, optional local hooks and Wxxx checkpoints are available through `agentready skill`,
-`agentready hooks`, `agentready checkpoint` and `agentready resume`. Generated repositories expose
-the same tools through `python scripts/project.py` after detach. Hooks are disabled by default
-and require explicit activation; AgentReady does not change global agent configuration.
-See [the contract, eval and continuity guide](docs/SKILL_QA_AND_CONTINUITY.md).
-
 > Bootstrap once. Own the repository forever.
 
-AgentReady is a small, vendor-neutral CLI that generates a Python repository with concise coding-
-agent guidance, checks its structural integrity, and can remove its own maintenance metadata. The
-generated application remains an ordinary repository: it does not import AgentReady or require an
-AgentReady account, backend, network service, Copier, or Jinja for normal development.
+AgentReady bootstraps Python repositories that coding agents can understand, modify and verify
+predictably. It is a small, vendor-neutral engineering layer: generated applications do not import
+AgentReady, and normal development requires no AgentReady account, backend or remote service.
 
-## Status
+It generates a Python package, tests, CI, AGENTS.md, a codebase map and local work/skill/continuity
+tools. The workflow is `init → work → route/skill → build → verify → detach optional`.
 
-Version 0.1.0 is a **practical-validation candidate**, not a production-stable release. The V0.1
-surface is intentionally limited to:
+## Quick start
 
-- `agentready init PATH`
-- `agentready doctor [PATH] [--format human|json]`
-- `agentready detach [PATH]`
-
-Adoption of existing repositories, updates, synchronization, an audit command, additional language
-profiles, remote templates, plugins, telemetry, accounts, and hosted services are not implemented.
-
-## Requirements and installation
-
-AgentReady requires Python 3.12 or newer. This repository has not been published to PyPI; from a
-source checkout, install and run it with uv:
+Python 3.12+ and uv are required. From this source checkout (PyPI publication is not assumed):
 
 ```bash
 uv sync --all-groups
-uv run agentready --help
-uv run agentready --version
+uv run agentready init ../my-project --profile minimal --bootstrap
+uv run agentready doctor ../my-project
 ```
 
-Once a distribution is published, the intended transient invocation is:
+In the generated project:
 
 ```bash
-uvx agentready init my-project
+python scripts/project.py --help
+python scripts/project.py verify
 ```
 
-No AgentReady installation is needed inside the generated project.
+Omit `--bootstrap` to generate files without preparing an environment; run
+`python scripts/project.py bootstrap` later. Bootstrap failure leaves the repository for repair.
 
-## Quickstart
+For a GitHub release installation, download its wheel from
+[Releases](https://github.com/massaro8/programming_agents/releases), then use
+`uvx --from ./agentready-0.1.0-py3-none-any.whl agentready --help` and the same prefix for init,
+doctor or detach. Before publication, `uv build` produces the wheel locally. PyPI is not assumed.
 
-From the directory where the new project should be created:
+## Which profile should I choose?
+
+| Your goal | Profile | Actual contract |
+|---|---|---|
+| Control my own package folder structure | `minimal` | Direct `src/<package>/` seed; no prescribed module/layer boundaries. Keep the Python packaging, tests and tooling scaffold. |
+| Start with a standard application structure | `application` | Thin entrypoints, bootstrap/config and `modules/<capability>/domain` + `application`; checked import directions and public exports. |
+| Use an opinionated service architecture | `service` | Application structure plus an adapter boundary; inward dependencies and resource ownership guidance. |
+
+Choose `minimal` for flexible organization inside the generated Python scaffold. This does not
+promise arbitrary build systems or removal of required seed artifacts. Application/service
+customization must preserve their checked boundaries; moving code arbitrarily is not supported.
+
+## Generated repository at a glance
+
+| Path | Purpose |
+|---|---|
+| `AGENTS.md`, `CLAUDE.md` | Canonical starting instructions and thin Claude adapter. |
+| `src/`, `tests/`, `pyproject.toml`, `.github/workflows/ci.yml` | Project-owned Python application, tests, dependencies and CI. |
+| `docs/generated/CODEBASE_MAP.md` | Derived navigation; regenerate after structural changes. |
+| `docs/agent/`, `.agents/skills/` | Workflows, standards and skills loaded on demand. |
+| `docs/work/`, `docs/changelog/` | Human-owned specifications and generated indexes. |
+| `scripts/project.py` | Local command entry point that survives detachment. |
+| `.agentready/` | Optional maintenance metadata, removable by detach. |
+
+Use the generated agent index to select exploration, feature, bug investigation, refactoring,
+documentation, maintenance or security workflows. Work types select skills; acceptance criteria
+and risk determine planning and verification depth. Permanent context stays small; detailed
+standards and skills are disclosed only when the task needs them.
+
+## Work item lifecycle
+
+Task → work item → routing/skill → implementation → validation → DONE.
 
 ```bash
-uv run agentready init my-project
-uv run agentready doctor my-project
-uv run agentready doctor my-project --format json
-
-cd my-project
-uv sync --all-groups
-uv run pytest
+python scripts/project.py work new --type FEATURE "Add a capability"
 ```
 
-The generated repository also documents its complete Ruff, mypy, pytest, and build workflow. To
-stop using AgentReady while keeping the application and its guidance:
+Fill the created specification with scope and acceptance criteria. After user authorization,
+a human or authorized agent authors `Status: READY` in that record, then runs:
 
 ```bash
-# From the parent directory:
-cd ..
-uv run agentready detach my-project
-
-# Or, with the CLI installed, from inside the generated project:
-agentready detach .
+python scripts/project.py work sync
+python scripts/project.py work check
+python scripts/project.py context --next
+python scripts/project.py work transition W001 IN_PROGRESS
 ```
 
-`detach` removes only the recognized `.agentready/` maintenance boundary. It preserves source,
-tests, configuration, CI, README, architecture documentation, `AGENTS.md`, `CLAUDE.md`, and
-`docs/agent/**`, `docs/work/**`, `docs/changelog/**`, `docs/adr/**`, and the local
-`scripts/work_registry.py` utility. A second detach returns a deterministic non-zero “not managed or
-already detached” result.
+The transition helper intentionally cannot promote BACKLOG to READY. Continue already accepted
+IN_PROGRESS work directly; no rollback or repeated approval is needed. After implementing the
+accepted scope, record verification, documentation impact and changelog, transition to DONE and
+sync. See generated `docs/agent/workflows/feature.md` and `docs/work/templates/`.
 
-Generated projects track six kinds of work under `docs/work/`. Humans approve normative specifications
-as `READY`; agents follow the type-specific workflow, record verification and documentation impact,
-then synchronize the deterministic work index and changelog. The local registry remains usable after
-detach and has no AgentReady runtime dependency.
+## Token-efficient workflow
 
-## What doctor checks
+Read AGENTS.md and CODEBASE_MAP, search before opening implementation, load skills on demand,
+and stop at the minimum sufficient context. Start with targeted checks; broaden validation by
+diff and risk. Save a checkpoint instead of replaying the conversation in a fresh session.
 
-Doctor is read-only, deterministic, local, and non-AI. For the bundled Python profile it checks:
+AgentReady implements deterministic maps, context pointers, skill checks and checkpoints. Reading
+strategy, planning discipline, log summarization and sub-agent use are recommendations followed
+by the host. It neither measures token savings nor controls a model's context. See the
+[final evaluation](docs/audits/FINAL_PRODUCTIZATION_AUDIT.md).
 
-- AgentReady manifest identity and supported schema;
-- safe, unique ownership paths and declared artifact presence;
-- `AGENTS.md`, declared adapters, and repository-local guidance references;
-- expected Python source/test/configuration/CI structure;
-- absence of an AgentReady dependency in supported dependency tables;
-- work-item metadata and consistency of the generated work index and changelog;
-- structural prerequisites needed for safe detach.
+## Task routing
 
-It does not run project tests, builds, Git operations, network requests, or editorial/LLM review.
-Human and schema-1 JSON modes use identical findings and exit `0` only for a healthy repository.
-
-## No-lock-in evidence
-
-The automated detachment qualification builds and installs the AgentReady wheel, generates and
-diagnoses a project, runs its full toolchain, detaches it, deletes the AgentReady tool environment,
-creates a fresh project environment, and repeats sync, format, lint, type checking, tests, and
-build. It also proves:
-
-- only `.agentready/` disappears;
-- useful guidance remains byte-identical and locally linked;
-- AgentReady, Copier, and Jinja are absent from the project environment;
-- application source and artifacts contain no AgentReady framework import or package.
-
-See [DET-002 audit](docs/audits/DET_002_AUDIT.md) and the
-[detachment contract](docs/DETACHMENT_CONTRACT.md).
-
-## Trust and security boundary
-
-V0.1 renders only the trusted template bundled in the installed package. Copier is an internal
-generation engine; AgentReady disables unsafe template execution and does not execute remote
-templates, arbitrary hooks, community plugins, repository commands, or network checks. Init refuses
-non-empty targets, doctor is read-only, and detach fails closed unless it recognizes the fixed local
-metadata boundary. AgentReady never runs destructive Git commands.
-
-Repository content and suggested commands should still be treated as untrusted input. See
-[SECURITY.md](SECURITY.md).
-
-## Current limitations
-
-- Python 3.12+ and the bundled minimal, application, and service profiles only.
-- Init supports new missing or empty directories, not adoption or updating.
-- Doctor performs structural checks, not Git analysis or executable quality auditing.
-- Detach supports recognized schema-1 AgentReady projects and has no force or repair mode.
-- Symlink safety tests run on Linux CI; local Windows runs may skip them without Developer Mode.
-- V0.1 is prepared for practical validation but has not completed that campaign.
-
-## Development
+Generated local tooling extends the existing work-type → skill mapping:
 
 ```bash
-uv sync --all-groups
-uv run ruff format --check .
-uv run ruff check .
-uv run mypy src
-uv run pytest
-uv build
-uv run python scripts/generate_codebase_map.py --check
+python scripts/project.py route FEATURE --complexity LOCAL --work-status READY
+python scripts/project.py route BUGFIX --complexity LOCAL --risk-signal concurrency
+python scripts/project.py route FEATURE --complexity CROSS_MODULE --unknown-area
 ```
 
-The complete next-phase scenarios and manual metrics are in
-[docs/PRACTICAL_VALIDATION_PLAN.md](docs/PRACTICAL_VALIDATION_PLAN.md). Architecture, product scope,
-roadmap, and permanent milestone evidence live under `docs/`.
+Explicit inputs distinguish TRIVIAL, LOCAL, CROSS_MODULE and ARCHITECTURAL complexity from
+NORMAL/HIGH risk. Security/auth/permissions, money/payments, migrations, concurrency, secrets,
+infrastructure and destructive data signals dominate small scope. Output recommends skill,
+planning, context, validation, review, sub-agent use and abstract FAST/BALANCED/STRONG model class.
+`--format json` exposes deterministic data. Status inputs are advisory, not approval evidence.
+No model switching, provider calls or worker launching occurs.
+
+## Sub-agents
+
+Consider one read-only explorer for an unfamiliar area or noisy investigation. Consider scoped
+parallel explorers only for explicitly independent domains. Architectural or high-risk work
+warrants a reviewer/specialist recommendation. Use compact handoffs, not conversation transcripts.
+
+Avoid delegation for typos, formatting, known local features and small deterministic fixes.
+Parallelism can improve latency and context isolation; it does not automatically save tokens.
+AgentReady recommends but neither requires nor orchestrates sub-agents.
+
+## Hooks
+
+**Hooks enabled by default: 0.** Activation is explicit and repository-local. No global agent,
+Git or shell configuration is changed. `hooks list` inspects recipes; `hooks enable safe-shell
+--dry-run` previews activation. A host/developer explicitly invokes preflight; enabling a recipe
+does not install automatic command interception.
+
+## Continuity
+
+`python scripts/project.py checkpoint W001` saves bounded work state;
+`python scripts/project.py resume W001` returns compact context and staleness warnings.
+Validate current repository state before continuing; existing checkpoints require `--replace`.
+See [skill QA and continuity](docs/SKILL_QA_AND_CONTINUITY.md).
+
+## Detach / no lock-in
+
+From the source checkout, `uv run agentready detach ../my-project` removes only recognized `.agentready/` maintenance
+metadata. Source, tests, CI, instructions, local routing, work/skill/hook/checkpoint tools and
+useful docs remain. Generated projects require neither AgentReady nor Copier/Jinja for normal
+development. See [the detachment contract](docs/DETACHMENT_CONTRACT.md).
+
+## Commands and limits
+
+`agentready --help` discovers init, read-only doctor, detach, skill, hooks, checkpoint and resume.
+Generated `project.py --help` discovers work, route, context, status, module, skill/evals, hooks,
+checkpoint/resume, bootstrap, sync, check, verify and installed-wheel package-check.
+Use `<command> --help` for details.
+
+V0.1 supports bundled Python profiles and missing/empty init targets. Adoption, updates, remote
+templates, provider orchestration, plugins and token telemetry are not implemented. Doctor checks
+structure/contracts; it does not execute project tests. CI remains authoritative. Windows may
+skip symlink tests when link privileges are unavailable.
+
+Development gates: `uv run pytest`, `uv run ruff check .`, `uv run ruff format --check .`,
+`uv run mypy src`, `uv build`, and `uv run python scripts/generate_codebase_map.py --check`.
+See [product scope](docs/PRODUCT_SPEC.md), [architecture](docs/ARCHITECTURE.md), and
+[security](SECURITY.md).
+
+For deeper instructions see [the user guide](docs/USER_GUIDE.md). For development and publication,
+see [contributing](CONTRIBUTING.md), [release history](CHANGELOG.md) and
+[the release checklist](docs/RELEASING.md). Report bugs and questions through
+[GitHub issues](https://github.com/massaro8/programming_agents/issues); support is best effort.
+Only the latest release receives fixes.
+
+## Recovery and troubleshooting
+
+| Problem | Supported next step |
+|---|---|
+| Init refuses a target | Use a missing or empty directory; adoption is not implemented. |
+| Bootstrap was interrupted | Inspect the retained project and retry `python scripts/project.py bootstrap`. |
+| Work/index check fails | Complete the specification and run `work sync`, then `work check`. |
+| Busy or stale lock | Confirm the writer has stopped before removing only the reported lock. |
+| Malformed metadata or partial detach | Restore trusted original data and follow the recovery procedure. |
+
+See [recovery and retry](docs/USER_GUIDE.md#recovery-and-retry) for stale locks, interrupted
+operations, malformed checkpoints/hooks and partial detach. Doctor diagnoses structure; project
+checks execute validation. A passing doctor does not establish passing tests.
+
+## CloudFormation feasibility
+
+CloudFormation alongside a Python application can use its Python profile with separate IaC
+checks. CloudFormation-only generation is experimental and is **not a supported profile**.
+See [the feasibility experiment](docs/audits/CLOUDFORMATION_FEASIBILITY.md) for the standalone
+repository approach and local validation evidence.

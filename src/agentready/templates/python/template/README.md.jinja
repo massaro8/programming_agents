@@ -2,6 +2,19 @@
 
 An independent Python project generated from a trusted AgentReady template.
 
+Profile: **{{ profile }}**. Keep the generated Python packaging, tests and local tooling scaffold.
+{% if profile == "minimal" -%}
+This profile starts with direct `src/{{ package_name }}/` code and imposes no module/layer layout.
+Customize package folders as your requirements grow; do not add speculative layers.
+{% elif profile == "application" -%}
+Capabilities live under `modules/<capability>/domain` and `application`; entrypoints stay thin
+and bootstrap composes dependencies. Customize within the checked boundaries and public exports.
+{% else -%}
+Capabilities use domain/application/adapter boundaries under `modules/<capability>/`.
+Keep dependencies inward, entrypoints thin, and resource ownership explicit. Customization must
+preserve the service architecture checks.
+{% endif %}
+
 ## Getting started
 
 Generate without preparing an environment with `agentready init {{ distribution_name }} --profile {{ profile }}`. From the generated directory, run `python scripts/project.py bootstrap` to synchronize dependencies, create `uv.lock`, and run the regular project checks.
@@ -13,6 +26,24 @@ From the project directory, run `python scripts/project.py check` for registry, 
 `python scripts/project.py status` gives a read-only health summary; `python scripts/project.py context --next` points to the next READY specification, skill, workflow, and relevant standards. Use `python scripts/project.py module new <name> --responsibility "..."` when a genuinely new capability needs a module, then `python scripts/project.py sync` to regenerate indexes and the map. `python scripts/project.py package-check` builds and smoke-tests an installed wheel offline in a temporary environment. `check` and `verify` use the existing lock without relocking; `bootstrap` is the dependency-sync step.
 
 ## Developer navigation
+
+Create work with `python scripts/project.py work new --type FEATURE "Work title"`.
+Fill the specification; after user authorization, author `Status: READY`, run `work sync` and
+`work check`, then `work transition W001 IN_PROGRESS`. The helper does not promote BACKLOG.
+Accepted IN_PROGRESS work can continue directly. Record implementation, verification, documentation
+impact and changelog before `work transition W001 DONE`. See
+[the feature workflow](docs/agent/workflows/feature.md).
+
+`python scripts/project.py route FEATURE --complexity LOCAL --work-status READY` recommends
+skill, plan, context, validation, review and abstract model class from explicit inputs.
+For unfamiliar boundaries use `--complexity CROSS_MODULE --unknown-area`; risk signals such as
+`--risk-signal concurrency` override small scope. Routing does not authorize work or launch models.
+Use `route --help` and [the context standard](docs/agent/standards/context-efficiency.md).
+
+Read AGENTS and CODEBASE_MAP, search before reading implementation, load the matching skill on
+demand, and run targeted tests before broader gates. Usually avoid sub-agents for local work;
+consider a read-only explorer for unknown areas and specialist review for architecture/high risk.
+Recommendations depend on the host; local tools do not orchestrate agents or measure tokens.
 
 Use `python scripts/project.py skill check` for Skill Contract v1 and
 `python scripts/project.py skill eval feature-builder` for lexical trigger fixtures. Behavioral
@@ -26,6 +57,10 @@ agent configuration. Inspect `python scripts/project.py hooks list`, preview wit
 safe-shell --dry-run`, then activate explicitly. A developer or host invokes `hooks check` to
 preflight a command; it never executes commands or installs automatic interception. Config,
 evidence, checkpoints and stdlib scripts remain usable after detach. See agent guidance below.
+
+To remove maintenance metadata, run `agentready detach .` from an environment with AgentReady
+installed. It preserves source, tests, CI, guidance and local tools. Normal development and
+`project.py verify` do not require AgentReady. Use `project.py --help` for command discovery.
 
 - [Architecture](docs/ARCHITECTURE.md)
 - [Work registry](docs/work/index.md)

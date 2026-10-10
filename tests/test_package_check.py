@@ -18,6 +18,7 @@ def test_package_check_uses_temporary_isolated_wheel(tmp_path: Path, profile: st
         pytest.fail("uv is required for package-check qualification")
     project = tmp_path / "demo_package_check"
     generate_project(project, profile=profile)
+    project_python = project / ".venv" / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
 
     environment = os.environ.copy()
     environment.pop("PYTHONPATH", None)
@@ -49,7 +50,7 @@ def test_package_check_uses_temporary_isolated_wheel(tmp_path: Path, profile: st
     if profile == "minimal":
         failed = subprocess.run(
             [
-                os.fspath(project / ".venv/Scripts/python.exe"),
+                os.fspath(project_python),
                 "scripts/package_check.py",
                 "--uv",
                 "package-check-missing-uv",
@@ -65,7 +66,7 @@ def test_package_check_uses_temporary_isolated_wheel(tmp_path: Path, profile: st
         assert "failed during wheel build" in failed.stderr
     result = subprocess.run(
         [
-            os.fspath(project / ".venv/Scripts/python.exe"),
+            os.fspath(project_python),
             "scripts/package_check.py",
         ],
         cwd=project,

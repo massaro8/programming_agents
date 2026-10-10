@@ -5,6 +5,8 @@ _templates_suffix: .jinja
 # Keep one common template tree.  Copier renders these patterns with the
 # selected answers before matching destination paths.
 _exclude:
+  - "**/__pycache__"
+  - "**/*.pyc"
   - "{% if profile == 'minimal' %}src/{{ package_name }}/modules{% else %}__agentready_never__{% endif %}"
   - "{% if profile == 'minimal' %}src/{{ package_name }}/__main__.py{% else %}__agentready_never__{% endif %}"
   - "{% if profile == 'minimal' %}src/{{ package_name }}/entrypoints{% else %}__agentready_never__{% endif %}"

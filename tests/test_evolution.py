@@ -60,7 +60,8 @@ def test_contract_accepts_seed_and_validates_all_evals(repository: Path) -> None
     for path in (repository / ".agents/skills").iterdir():
         report = skill_qa.evaluate(repository, path.name)
         assert report["passed"]
-        assert [case["trigger_passed"] for case in report["cases"]] == [True, True]
+        assert report["cases"]
+        assert all(case["trigger_passed"] for case in report["cases"])
     before = snapshot(repository)
     assert main(["skill", "--path", str(repository), "check", "--format", "json"]) == 0
     assert snapshot(repository) == before
@@ -156,6 +157,19 @@ def test_external_results_score_missing_false_and_evidenced_criteria(repository:
         "cases": {"positive": observations},
     }
     path = repository / "results.json"
+    path.write_text(json.dumps(results))
+    assert skill_qa.evaluate(
+        repository, "feature-builder", case_id="positive", results="results.json"
+    )["passed"]
+    # An unscoped evaluation must also require the newly added continuation observations.
+    assert not skill_qa.evaluate(repository, "feature-builder", results="results.json")["passed"]
+    continuation = next(
+        case for case in definition["cases"] if case["id"] == "continue-accepted-feature"
+    )
+    results["cases"][continuation["id"]] = {
+        key: {"passed": True, "evidence": "Accepted IN_PROGRESS work continued without rollback"}
+        for key in continuation["criteria"]
+    }
     path.write_text(json.dumps(results))
     assert skill_qa.evaluate(repository, "feature-builder", results="results.json")["passed"]
     del observations["validation_executed"]

@@ -81,6 +81,25 @@ projects ship identical stdlib implementations usable through `scripts/project.p
 Local hook config, checkpoints and evidence remain project-owned outside `.agentready/`.
 See [the detailed contracts](SKILL_QA_AND_CONTINUITY.md).
 
+### Deterministic task recommendations
+
+Generated `project.py route` extends the existing work-type/skill mapping with explicit
+TRIVIAL/LOCAL/CROSS_MODULE/ARCHITECTURAL complexity and NORMAL/HIGH risk. Supported security,
+auth/permissions, money/payments, migration, concurrency, secrets, infrastructure and destructive
+data signals force HIGH risk regardless of scope. Recommendations include skill, planning,
+context, validation, review, sub-agent use and abstract FAST/BALANCED/STRONG model class.
+The command is advisory: supplied work status is not approval evidence, no work item is modified,
+and no model or worker is launched. Unknown areas may warrant one read-only explorer; parallel
+explorers require explicitly independent domains. Ordinary known local work recommends none.
+
+New accepted features start READY; resumed accepted IN_PROGRESS features remain actionable.
+BACKLOG approval remains user/authorized specification authoring followed by synchronization;
+the transition helper does not bypass that boundary. Generated `project.py work` forwards the
+existing registry, and all capability help forwards to its owning parser.
+
+These stdlib tools remain available after detach. Token telemetry, host execution of
+recommendations and reasoning/model selection are external responsibilities.
+
 ## Explicit non-goals for V0.1
 
 - no cloud service;

@@ -145,6 +145,14 @@ agent adapters, third-party installation or registry is introduced.
 V0.1 stores only local metadata. No backend, account, API key, telemetry, or remote AgentReady service is
 required for normal operation.
 
+## Task recommendation boundary
+
+Generated `scripts/skill_routes.py` owns both work-type context pointers and deterministic
+complexity/risk recommendations. `project.py route` only forwards to that module; `work` forwards
+to the existing registry. No second command system, core orchestrator or provider adapter is
+introduced. Inputs are structured and output is advisory; approval remains in the work lifecycle.
+The existing shared-artifact ownership contract already preserves both scripts after detach.
+
 ## Security boundaries
 
 Treat repository content, issue text, PR comments, downloaded templates, remote skills, and suggested

@@ -124,7 +124,8 @@ configuration fails closed. The bounded journal requires explicit archiving afte
 The record is not proof that a command ran. Completion interception is deferred because there is
 no existing host completion callback; no completion evidence is fabricated.
 
-All mutations offer `--dry-run`. Unknown recipes/modes/fields are rejected; unrelated project
+Configure, enable and disable offer `--dry-run`; recording evidence does not. Unknown
+recipes/modes/fields are rejected; unrelated project
 configuration is not touched. Disable writes an explicit disabled state without deleting evidence.
 Detach preserves local recipes, configuration and evidence as usable project files.
 
@@ -154,6 +155,15 @@ Untracked changes outside listed files are not covered. Git absence is supported
 
 Authority is always code/tests/config > accepted decisions > work item > checkpoint. Recheck
 stale claims before continuing. These files survive detach without a memory database or service.
+
+Hook configuration, evidence append and checkpoint writes reject a competing writer with an
+explicit retry error. A repository-local `<artifact>.lock` covers the read/modify/write operation
+and is removed on normal completion or a reported failure. After a killed process, remove its
+stale lock only after confirming no writer remains. Dry-runs and read-only commands create no lock.
+These guards do not protect against hostile filesystem replacement. Work registry mutations and
+index synchronization retain their single-writer constraint: run them sequentially; `next-id` is
+an advisory value, not a reservation. If a failed registry operation leaves a work item, inspect it
+and run `work check`/`work sync` before retrying creation.
 
 For another target put `--path <repository>` immediately after the AgentReady command, before its
 remaining arguments. Generated repositories expose the same actions through

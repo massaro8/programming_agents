@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import sys
 from collections.abc import Sequence
+from io import TextIOWrapper
 from pathlib import Path
 
 from agentready import __version__
@@ -52,6 +53,9 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: Sequence[str] | None = None) -> int:
+    for stream in (sys.stdout, sys.stderr):
+        if isinstance(stream, TextIOWrapper):
+            stream.reconfigure(errors="backslashreplace")
     parser = build_parser()
     args = parser.parse_args(argv)
     if args.command in ("skill", "hooks", "checkpoint", "resume"):
@@ -68,7 +72,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     if args.command == "init":
         try:
             generate_project(args.target, profile=args.profile)
-        except (GeneratorError, TypeError) as exc:
+        except (GeneratorError, TypeError, OSError) as exc:
             print(f"error: {exc}", file=sys.stderr)
             return 1
         if args.bootstrap:

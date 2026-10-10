@@ -14,11 +14,16 @@ dependencies = [
     "copier>=9.18.2,<10",
 ]
 classifiers = [
-  "Development Status :: 2 - Pre-Alpha",
+  "Development Status :: 4 - Beta",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.12",
   "License :: OSI Approved :: MIT License",
 ]
+
+[project.urls]
+Repository = "https://github.com/massaro8/programming_agents"
+Issues = "https://github.com/massaro8/programming_agents/issues"
+Documentation = "https://github.com/massaro8/programming_agents#readme"
 
 [project.scripts]
 agentready = "agentready.cli:main"
@@ -32,6 +37,9 @@ dev = [
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/agentready"]
+
+[tool.hatch.build.targets.sdist]
+include = ["/src/agentready", "/pyproject.toml", "/README.md", "/LICENSE", "/CHANGELOG.md"]
 
 [tool.ruff]
 line-length = 100

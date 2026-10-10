@@ -70,7 +70,7 @@ def _safe(project: Project, rel: str) -> tuple[ProjectPath | None, Path | None]:
     current = project.path
     for part in pp.path.parts:
         current /= part
-        if current.is_symlink():
+        if current.is_symlink() or current.is_junction():
             return pp, None
     return pp, project.path_for(pp)
 
@@ -147,7 +147,10 @@ def inspect(root: Path | str = ".") -> DoctorReport:
         raw = Path(root)
         absolute = raw if raw.is_absolute() else Path.cwd() / raw
         project = Project(absolute)
-        root_ok = project.path.is_dir() and not project.path.is_symlink()
+        root_ok = project.path.is_dir() and not any(
+            path.is_symlink() or path.is_junction()
+            for path in (project.path, *project.path.parents)
+        )
     except (TypeError, ValueError, OSError) as exc:
         findings.append(_finding("project.root", False, f"invalid project root: {exc}"))
         findings.extend(
@@ -342,7 +345,9 @@ def inspect(root: Path | str = ".") -> DoctorReport:
         for path in required
         if path.as_posix() not in EVOLUTION_SHARED
     ) and all(
-        (project.path / x).is_dir() and not (project.path / x).is_symlink()
+        (project.path / x).is_dir()
+        and not (project.path / x).is_symlink()
+        and not (project.path / x).is_junction()
         for x in ("src", "tests")
     )
     findings.append(

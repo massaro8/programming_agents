@@ -6,11 +6,12 @@ import argparse
 import json
 import re
 import shlex
+from contextlib import nullcontext
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from agentready.local_paths import SECRET, local_path, read_json, write_json
+from agentready.local_paths import SECRET, local_path, read_json, repository_write, write_json
 
 CONFIG = "docs/agent/hooks.json"
 EVIDENCE = "docs/work/evidence/hooks.json"
@@ -81,24 +82,25 @@ def configure(
     branches: list[str] | None = None,
     dry_run: bool = False,
 ) -> dict[str, Any]:
-    data = configuration(root)
-    if name not in data["hooks"]:
-        raise ValueError("unknown hook recipe")
-    recipe = data["hooks"][name]
-    if enabled is not None:
-        recipe["enabled"] = enabled
-    if name != "safe-shell" and any(v is not None for v in (mode, exclusions, branches)):
-        raise ValueError("safety parameters apply only to safe-shell")
-    for key, value in (
-        ("mode", mode),
-        ("exclusions", exclusions),
-        ("protected_branches", branches),
-    ):
-        if value is not None:
-            recipe[key] = value
-    validate(data)
-    if not dry_run:
-        write_json(root, CONFIG, data)
+    with repository_write(root, CONFIG) if not dry_run else nullcontext():
+        data = configuration(root)
+        if name not in data["hooks"]:
+            raise ValueError("unknown hook recipe")
+        recipe = data["hooks"][name]
+        if enabled is not None:
+            recipe["enabled"] = enabled
+        if name != "safe-shell" and any(v is not None for v in (mode, exclusions, branches)):
+            raise ValueError("safety parameters apply only to safe-shell")
+        for key, value in (
+            ("mode", mode),
+            ("exclusions", exclusions),
+            ("protected_branches", branches),
+        ):
+            if value is not None:
+                recipe[key] = value
+        validate(data)
+        if not dry_run:
+            write_json(root, CONFIG, data)
     return data
 
 
@@ -156,18 +158,19 @@ def record(root: Path, command: str, exit_status: int, work_id: str) -> dict[str
         "timestamp": datetime.now(UTC).isoformat(),
         "source": "external-report",
     }
-    path = local_path(root, EVIDENCE)
-    journal = read_json(root, EVIDENCE) if path.exists() else {"schema": 1, "entries": []}
-    if (
-        set(journal) != {"schema", "entries"}
-        or journal["schema"] != 1
-        or not isinstance(journal["entries"], list)
-    ):
-        raise ValueError("invalid evidence journal")
-    if len(journal["entries"]) >= 200:
-        raise ValueError("evidence journal full; archive it explicitly")
-    journal["entries"].append(entry)
-    write_json(root, EVIDENCE, journal)
+    with repository_write(root, EVIDENCE):
+        path = local_path(root, EVIDENCE)
+        journal = read_json(root, EVIDENCE) if path.exists() else {"schema": 1, "entries": []}
+        if (
+            set(journal) != {"schema", "entries"}
+            or journal["schema"] != 1
+            or not isinstance(journal["entries"], list)
+        ):
+            raise ValueError("invalid evidence journal")
+        if len(journal["entries"]) >= 200:
+            raise ValueError("evidence journal full; archive it explicitly")
+        journal["entries"].append(entry)
+        write_json(root, EVIDENCE, journal)
     return entry
 
 

@@ -1,12 +1,13 @@
 ---
 name: feature-builder
-description: Use for implementing a non-trivial feature from a scoped, human-owned READY FEATURE item with explicit acceptance criteria.
+description: Use for implementing or continuing a non-trivial feature from a scoped, human-owned READY or IN_PROGRESS FEATURE item with explicit acceptance criteria.
 ---
 
 # Feature Builder
 
 ## Inputs and preconditions
-- One READY FEATURE item describing scope, acceptance, constraints, and verification.
+- One human-authorized READY or IN_PROGRESS FEATURE item describing scope, acceptance, constraints, and verification.
+- For READY work, transition to IN_PROGRESS before implementation. For accepted IN_PROGRESS work, continue its recorded scope without resetting status or seeking duplicate approval.
 - Applicable `AGENTS.md`, codebase map, and repository instructions.
 - If scope or acceptance is absent, stop implementation and report the missing decision.
 
@@ -32,10 +33,10 @@ Stop before coding when scope, acceptance, ownership, or a required external dec
 Acceptance criteria are met, relevant checks pass, the work record is complete, indexes are synced, and the item is DONE.
 
 ## Purpose
-Implementing a non-trivial feature from a scoped, human-owned ready feature item with explicit acceptance criteria.
+Implement or continue a non-trivial feature from a scoped, human-owned READY or IN_PROGRESS item with explicit acceptance criteria.
 
 ## Positive triggers
-Use for implementing a non-trivial feature from a scoped, human-owned READY FEATURE item with explicit acceptance criteria.
+Use for implementing or continuing a non-trivial feature from a scoped, human-owned READY or IN_PROGRESS FEATURE item with explicit acceptance criteria.
 
 ## Exclusions
 Do not use for typo-only edits, investigation without accepted scope, or bugs requiring reproduction.

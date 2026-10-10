@@ -8,6 +8,7 @@ from pathlib import Path
 import pytest
 
 from agentready import __version__
+from agentready.render import generator
 from agentready.render.generator import GeneratorError, generate_project
 
 PROJECT_OWNED = [
@@ -104,6 +105,28 @@ GENERATED += [
     ".claude/skills/security-review/SKILL.md",
 ]
 EXPECTED_FILES = set(PROJECT_OWNED + SHARED + GENERATED)
+
+
+def test_template_bytecode_is_not_a_generated_artifact(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    template = tmp_path / "cached-template"
+    original_files = generator.resources.files
+    shutil.copytree(Path(str(original_files("agentready.templates.python"))), template)
+    cache = template / "template/scripts/__pycache__"
+    cache.mkdir(exist_ok=True)
+    (cache / "fixture.cpython-312.pyc").write_bytes(b"disposable bytecode fixture")
+    monkeypatch.setattr(
+        generator.resources,
+        "files",
+        lambda anchor: (
+            template if anchor == "agentready.templates.python" else original_files(anchor)
+        ),
+    )
+    target = tmp_path / "demo_agentready"
+    generate_project(target)
+    assert not any("__pycache__" in path.parts for path in target.rglob("*"))
+    assert not list(target.rglob("*.pyc"))
 
 
 def test_generate_canonical_tree_and_manifest(tmp_path: Path) -> None:

@@ -54,8 +54,15 @@ def test_context_resolves_work_type_and_keeps_blocked_non_actionable(tmp_path: P
         output = _run(root, "context", "--next", "--format", "json")
         assert output.returncode == 0
         assert json.loads(output.stdout)["work_id"] == work_id
+        registry["transition"](root, work_id, "IN_PROGRESS")
+        assert context["resolve"](root) == {"status": "NO_READY_WORK"}
+        continuing = context["resolve"](root, work_id)
+        assert continuing["actionable"] is True
+        assert continuing["status"] == "IN_PROGRESS"
         work_path.write_text(
-            work_path.read_text(encoding="utf-8").replace("Status: READY", "Status: BLOCKED", 1),
+            work_path.read_text(encoding="utf-8").replace(
+                "Status: IN_PROGRESS", "Status: BLOCKED", 1
+            ),
             encoding="utf-8",
         )
         assert context["resolve"](root) == {"status": "NO_READY_WORK"}

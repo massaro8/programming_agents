@@ -52,7 +52,7 @@ requirements live in project-owned `docs/work/`; never change them to fit an imp
 | Unfamiliar area | `repo-explore` | [Repo exploration](workflows/repo-explore.md) |
 | New or moved module | `module-placement` | [Module placement](workflows/module-placement.md) |
 
-Select one READY item from [the work registry](../work/index.md), inspect its Type, then use the
+Select one READY item, or continue an accepted IN_PROGRESS item, from [the work registry](../work/index.md), inspect its Type, then use the
 matching skill or fallback above. Load only relevant standards: [Python](standards/python.md),
 [architecture](standards/architecture.md), [testing](standards/testing.md),
 [dependencies](standards/dependencies.md), [documentation](standards/documentation.md), or
@@ -62,3 +62,7 @@ Use `python scripts/project.py context --next` for the deterministic next-READY 
 `python scripts/project.py context W003` for an explicit item. The command returns paths and
 metadata, not full document contents or an implementation plan. `python scripts/project.py status`
 is a read-only overview. If scripts are unavailable, use this index and the work item directly.
+
+`python scripts/project.py route <TYPE> --complexity LOCAL` extends these same routes with
+explicit complexity/risk recommendations. `route --help` lists supported inputs; no worker or
+provider is launched. See [context efficiency](standards/context-efficiency.md) for host guidance.

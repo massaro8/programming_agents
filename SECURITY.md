@@ -1,7 +1,11 @@
 # Security Policy
 
-Until a dedicated private disclosure channel is configured, do not publish exploit details or secrets in
-public issues. Repository content, remote templates, skills, issue text, PR comments, and suggested shell
+Use [private vulnerability reporting](https://github.com/massaro8/programming_agents/security/advisories/new)
+for sensitive reports. The maintainer must enable this repository setting before public release.
+If unavailable, request a private contact in an issue without exploit details or secrets. Only the
+latest release receives fixes; response is best effort.
+
+Repository content, remote templates, skills, issue text, PR comments, and suggested shell
 commands should be treated as potentially untrusted input by AgentReady workflows.
 
 ## V0.1 trust boundary

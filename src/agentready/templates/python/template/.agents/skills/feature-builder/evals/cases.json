@@ -2,7 +2,8 @@
   "schema": 1,
   "skill": "feature-builder",
   "include": [
-    "implement"
+    "implement",
+    "continue"
   ],
   "exclude": [
     "typo"
@@ -16,6 +17,17 @@
         "affected_tests_identified",
         "validation_executed",
         "final_evidence_produced"
+      ]
+    },
+    {
+      "id": "continue-accepted-feature",
+      "task": "continue the accepted IN_PROGRESS FEATURE with explicit acceptance criteria",
+      "trigger": true,
+      "criteria": [
+        "accepted_scope_preserved",
+        "in_progress_status_preserved",
+        "duplicate_approval_not_requested",
+        "validation_executed"
       ]
     },
     {

@@ -1,6 +1,6 @@
 # Codebase Map
 
-Structure fingerprint: `1916a1ff647b`
+Structure fingerprint: `2a457e6df1e5`
 
 Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 
@@ -45,6 +45,9 @@ Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 ### `AGENTS.md`
 - `AGENTS.md`
 
+### `CHANGELOG.md`
+- `CHANGELOG.md`
+
 ### `CLAUDE.md`
 - `CLAUDE.md`
 
@@ -74,16 +77,22 @@ Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 - `docs/DETACHMENT_CONTRACT.md`
 - `docs/PRACTICAL_VALIDATION_PLAN.md`
 - `docs/PRODUCT_SPEC.md`
+- `docs/RELEASING.md`
 - `docs/ROADMAP.md`
 - `docs/SKILL_QA_AND_CONTINUITY.md`
+- `docs/USER_GUIDE.md`
 - `docs/adr/0000-template.md`
+- `docs/audits/ADVERSARIAL_STRESS_AUDIT.md`
 - `docs/audits/BOOT_001_AUDIT.md`
 - `docs/audits/BOOT_002_AUDIT.md`
+- `docs/audits/CLOUDFORMATION_FEASIBILITY.md`
 - `docs/audits/DET_001_AUDIT.md`
 - `docs/audits/DET_002_AUDIT.md`
 - `docs/audits/DOC_001_AUDIT.md`
 - `docs/audits/DOC_002_AUDIT.md`
 - `docs/audits/FEATURE_EVOLUTION_AUDIT.md`
+- `docs/audits/FINAL_FIX_001.md`
+- `docs/audits/FINAL_PRODUCTIZATION_AUDIT.md`
 - `docs/audits/FLOW_001_AUDIT.md`
 - `docs/audits/FLOW_002_AUDIT.md`
 - `docs/audits/FLOW_003_AUDIT.md`
@@ -94,10 +103,12 @@ Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 - `docs/audits/PHASE0_BASELINE_AUDIT.md`
 - `docs/audits/PRODUCTIZE_001_AUDIT.md`
 - `docs/audits/PYT_001_AUDIT.md`
+- `docs/audits/RELEASE_READINESS_AUDIT.md`
 - `docs/audits/REL_001_AUDIT.md`
 - `docs/audits/STRESS_FIX_001_AUDIT.md`
 - `docs/changelog/index.md`
 - `docs/generated/CODEBASE_MAP.md`
+- `docs/releases/0.1.0.md`
 - `docs/work/W001-skill-contract-and-doctor-validation.md`
 - `docs/work/W002-portable-skill-evaluation.md`
 - `docs/work/W003-opt-in-repository-hooks.md`
@@ -251,6 +262,7 @@ Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 - `src/agentready/templates/python/template/tests/test_main.py.jinja`
 
 ### `tests`
+- `tests/test_adversarial_boundaries.py`
 - `tests/test_bootstrap.py`
 - `tests/test_codebase_map.py`
 - `tests/test_detach.py`
@@ -258,6 +270,7 @@ Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 - `tests/test_doctor.py`
 - `tests/test_doctor_json.py`
 - `tests/test_evolution.py`
+- `tests/test_final_ux.py`
 - `tests/test_generated_architecture.py`
 - `tests/test_generated_context.py`
 - `tests/test_generated_project.py`
@@ -271,6 +284,7 @@ Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 - `tests/test_stress_guidance.py`
 - `tests/test_stress_inventory.py`
 - `tests/test_stress_maintenance.py`
+- `tests/test_task_routing.py`
 - `tests/test_work_registry.py`
 
 ### `uv.lock`

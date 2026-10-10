@@ -22,8 +22,8 @@ def _inventory(root: Path) -> list[tuple[Path, bool]]:
             scanned = sorted(os.scandir(directory), key=lambda entry: entry.name)
             for entry in scanned:
                 path = Path(entry.path)
-                if entry.is_symlink():
-                    raise DetachError("maintenance metadata contains a symlink")
+                if entry.is_symlink() or path.is_junction():
+                    raise DetachError("maintenance metadata contains a symlink or junction")
                 if entry.is_dir(follow_symlinks=False):
                     visit(path)
                     entries.append((path, True))
@@ -45,11 +45,11 @@ def _assert_safe_target(boundary: Path, path: Path, is_directory: bool) -> None:
     except ValueError as exc:
         raise DetachError("maintenance metadata target escaped its boundary") from exc
     current = boundary
-    if current.is_symlink():
+    if current.is_symlink() or current.is_junction():
         raise DetachError("maintenance metadata changed or is unsafe")
     for part in relative.parts:
         current /= part
-        if current.is_symlink():
+        if current.is_symlink() or current.is_junction():
             raise DetachError("maintenance metadata changed or is unsafe")
     if (is_directory and not path.is_dir()) or (not is_directory and not path.is_file()):
         raise DetachError("maintenance metadata changed or is unsafe")
@@ -62,10 +62,12 @@ def detach_project(target: Path | str = ".") -> None:
         raise TypeError("target must be a pathlib.Path or string")
     raw = Path(target)
     project = Project(raw if raw.is_absolute() else Path.cwd() / raw)
-    if not project.path.is_dir() or project.path.is_symlink():
+    if not project.path.is_dir() or any(
+        path.is_symlink() or path.is_junction() for path in (project.path, *project.path.parents)
+    ):
         raise DetachError("project is not AgentReady-managed or is already detached")
     boundary = project.path_for(ProjectPath(Path(".agentready")))
-    if boundary.is_symlink() or not boundary.is_dir():
+    if boundary.is_symlink() or boundary.is_junction() or not boundary.is_dir():
         raise DetachError("project is not AgentReady-managed or is already detached")
     manifest = boundary / "manifest.toml"
     if manifest.is_symlink() or not manifest.is_file():

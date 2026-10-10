@@ -64,8 +64,9 @@ generate -> doctor PASS -> fixture checks PASS -> detach -> fixture checks PASS
 
 No V0.1 release without this gate.
 
-The automated Phase 1 gate is complete. The repository is a V0.1 practical-validation candidate;
-the scenarios in `docs/PRACTICAL_VALIDATION_PLAN.md` are the next phase, not completed evidence.
+The automated Phase 1 gate is complete. The original practical-validation plan remains historical
+planning guidance; current local stabilization and artifact qualification evidence is recorded in
+[FINAL_FIX_001](audits/FINAL_FIX_001.md). Publication and remote CI are separate release actions.
 
 ## Phase 2 - Existing repositories and evidence
 

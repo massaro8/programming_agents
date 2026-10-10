@@ -40,7 +40,7 @@ def resolve(root: Path, work_id: str | None = None) -> dict[str, object]:
         "map": "docs/generated/CODEBASE_MAP.md",
         "likely_module": "UNKNOWN",
         "verify": "uv run python scripts/project.py check",
-        "actionable": item.status == "READY",
+        "actionable": item.status in ("READY", "IN_PROGRESS"),
     }
 
 

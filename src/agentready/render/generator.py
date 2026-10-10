@@ -54,8 +54,10 @@ def generate_project(target: Path, profile: str = DEFAULT_PROFILE) -> Project:
     project = Project(absolute)
     name = project.path.name
     package = _validate_name(name)
-    if project.path.is_symlink():
-        raise GeneratorError("target must not be a symlink")
+    if any(
+        path.is_symlink() or path.is_junction() for path in (project.path, *project.path.parents)
+    ):
+        raise GeneratorError("target and its ancestors must not be symlinks or junctions")
     if project.path.exists() and (project.path.is_file() or not project.path.is_dir()):
         raise GeneratorError("target must be a directory")
     if project.path.is_dir() and any(project.path.iterdir()):

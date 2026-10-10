@@ -51,12 +51,13 @@ Do not recursively read the whole repository by default.
 Classify complexity and risk independently; use the higher class.
 
 - TRIVIAL: one focused builder is enough.
-- LOCAL: Luna or equivalent builder; micro-plan; targeted checks.
-- CROSS-MODULE: Sol coordinator produces compact handoff; Luna may build scoped steps.
-- ARCHITECTURAL: Sol plans and reviews; builder works from approved scope.
-- HIGH-RISK: Sol from the start; explicit failure/rollback considerations and broader validation.
+- LOCAL: FAST builder; micro-plan; targeted checks.
+- CROSS-MODULE: BALANCED coordinator produces compact handoff; FAST may build scoped steps.
+- ARCHITECTURAL: STRONG plans and reviews; builder works from approved scope.
+- HIGH-RISK: STRONG from the start; explicit failure/rollback considerations and broader validation.
 
-Do NOT automatically use Sol -> Luna -> Sol for every task. Multi-model routing is justified only
+FAST, BALANCED and STRONG are abstract host-selected classes, not provider model names.
+Do NOT automatically use coordinator -> builder -> reviewer for every task. Multi-model routing is justified only
 when planning/review reduces ambiguity, risk, or likely rework.
 
 ## Handoff contract
