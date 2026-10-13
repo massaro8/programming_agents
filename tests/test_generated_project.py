@@ -80,6 +80,8 @@ def test_qualify_independent_generated_project(tmp_path: Path, profile: str) -> 
         "scripts/skill_qa.py",
         "scripts/hooks.py",
         "scripts/continuity.py",
+        "scripts/verification.py",
+        "docs/verification.json",
         *{
             f".agents/skills/{name}/evals/cases.json"
             for name in (
@@ -227,7 +229,9 @@ def test_qualify_independent_generated_project(tmp_path: Path, profile: str) -> 
         claude_path = Path(".claude/skills") / skill_name / "SKILL.md"
         codex_skill = (first_project / codex_path).read_text()
         claude_skill = (first_project / claude_path).read_text()
-        assert codex_skill == claude_skill
+        from agentready.skill_qa import claude_view
+
+        assert claude_view(codex_skill, skill_name) == claude_skill
         assert 20 <= len(codex_skill.splitlines()) <= 80
         assert codex_skill.startswith("---\nname: ")
         frontmatter, body = codex_skill.split("---\n", 2)[1:]
@@ -251,9 +255,7 @@ def test_qualify_independent_generated_project(tmp_path: Path, profile: str) -> 
         "security",
     ):
         assert f"workflows/{fallback}.md" in index
-    assert (
-        first_project / "CLAUDE.md"
-    ).read_text().strip() == "See [AGENTS.md](AGENTS.md) for the canonical project guidance."
+    assert (first_project / "CLAUDE.md").read_text().strip() == "@AGENTS.md"
     ci = (first_project / ".github/workflows/ci.yml").read_text()
     assert [
         line.split("- run: ", 1)[1] for line in ci.splitlines() if "- run: " in line

@@ -1,0 +1,16 @@
+schema = 1
+family = "cloudformation"
+profile = "{{ profile }}"
+generator = "agentready"
+generator_version = "{{ generator_version }}"
+
+[ownership]
+project_owned = [
+{% for path in ownership.project_owned %}  "{{ path }}",
+{% endfor %}]
+shared = [
+{% for path in ownership.shared %}  "{{ path }}",
+{% endfor %}]
+generated = [
+{% for path in ownership.generated %}  "{{ path }}",
+{% endfor %}]

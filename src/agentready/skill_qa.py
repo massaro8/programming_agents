@@ -28,6 +28,18 @@ def skill_path(name: str) -> str:
     return f".agents/skills/{name}/SKILL.md"
 
 
+def claude_view(text: str, name: str) -> str:
+    """Generate a thin skill adapter from canonical metadata, without copying policy."""
+    skill_path(name)
+    metadata = re.match(r"\A---\n(.*?)\n---\n", text, re.S)
+    if metadata is None:
+        raise ValueError("malformed canonical skill frontmatter")
+    return metadata.group(0) + (
+        f"\nRead and follow [the canonical skill](../../../.agents/skills/{name}/SKILL.md) "
+        "before performing this task. Its procedure is the single source of truth.\n"
+    )
+
+
 def check(root: Path, name: str | None = None) -> list[dict[str, str]]:
     base = local_path(root, ".agents/skills")
     paths = (

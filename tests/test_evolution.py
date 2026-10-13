@@ -105,6 +105,11 @@ def test_empty_verification_and_advisory_severities(repository: Path) -> None:
     )
     issues = skill_qa.check(repository)
     assert {v["severity"] for v in issues} == {"WARNING", "INFO"}
+    from agentready.skill_qa import claude_view
+
+    (repository / ".claude/skills/feature-builder/SKILL.md").write_text(
+        claude_view(path.read_text(), "feature-builder"), encoding="utf-8"
+    )
     report = inspect(repository)
     assert report.healthy
     message = next(v.message for v in report.findings if v.check_id == "skills.contract")
@@ -386,7 +391,8 @@ def test_checkpoint_does_not_invoke_repository_local_git(
     item(repository)
     monkeypatch.setattr(shutil, "which", lambda name: str(repository / "git.exe"))
     result = continuity.checkpoint(repository, "W001")
-    assert result["revision"] is None and result["tracked_digest"] is None
+    assert result["revision"] is None
+    assert isinstance(result["tracked_digest"], str)  # Safe filesystem fallback, no local Git.
 
 
 @pytest.mark.parametrize(

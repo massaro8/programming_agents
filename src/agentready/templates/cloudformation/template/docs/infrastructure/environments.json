@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "branches": {
+    "sandbox": "sandbox"
+  },
+  "environments": {
+    "sandbox": {
+      "account_ref": "SANDBOX_ACCOUNT",
+      "region": "eu-west-1",
+      "namespace": "sandbox",
+      "role_ref": "SANDBOX_READ_ONLY_ROLE",
+      "stack_pattern": "{namespace}-{component}"
+    }
+  }
+}

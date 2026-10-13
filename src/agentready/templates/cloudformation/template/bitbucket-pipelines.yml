@@ -1,0 +1,12 @@
+image: python:3.12
+pipelines:
+  default:
+    - step:
+        name: Validate infrastructure
+        script:
+          - python -m pip install cfn-lint==1.57.2
+          - curl --fail --location --output guard.tar.gz https://github.com/aws-cloudformation/cloudformation-guard/releases/download/3.2.1/cfn-guard-v3-x86_64-ubuntu-latest.tar.gz
+          - echo '09c2b8cfd81d513374a8da89d4805dc55006a3da52bbf598e272022d4d198e94  guard.tar.gz' | sha256sum --check
+          - tar -xzf guard.tar.gz
+          - export PATH="$PWD/cfn-guard-v3-x86_64-ubuntu-latest:$PATH"
+          - python scripts/project.py verify

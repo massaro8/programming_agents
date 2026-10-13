@@ -84,6 +84,7 @@ def test_module_card_tests_grammar_and_accepted_forms(tmp_path: Path) -> None:
 
 def test_registry_enum_and_missing_completion_diagnostics(tmp_path: Path) -> None:
     root = project(tmp_path)
+    (root / "docs/verification.json").unlink()  # Exercise the legacy prose contract.
     created = run(root, "work_registry", "new", "--type", "FEATURE", "Invalid metadata")
     assert created.returncode == 0
     item = root / "docs/work/W001-invalid-metadata.md"

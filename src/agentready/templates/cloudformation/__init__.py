@@ -1,0 +1,1 @@
+"""Bundled CloudFormation repository family."""

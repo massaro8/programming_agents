@@ -122,6 +122,10 @@ def parse(path: Path) -> Work:
     work = Work(number, work_id, title, kind, status, path.name, text)
     if status == "DONE":
         validate_done(work)
+        if _field(text, "Verification evidence") == "REQUIRED":
+            from verification import validate
+
+            validate(path.parents[2], work_id, fresh=False, kind=kind)
     return work
 
 
@@ -332,6 +336,10 @@ def new_work(root: Path, kind: str, title: str) -> str:
     placeholder = "# WNNN — Work title"
     if not content.startswith(f"{placeholder}\n\nType: {kind}\nStatus: BACKLOG\n"):
         raise RegistryError(f"unsupported work template header: {template.name}")
+    if (root / "docs/verification.json").exists():
+        content = content.replace(
+            "Status: BACKLOG\n", "Status: BACKLOG\nVerification evidence: REQUIRED\n", 1
+        )
     with path.open("x", encoding="utf-8", newline="\n") as stream:
         stream.write(content.replace(placeholder, f"# {work_id} — {title}", 1))
     sync(root)
@@ -350,6 +358,10 @@ def transition(root: Path, work_id: str, status: str) -> None:
     candidate = Work(item.number, item.work_id, item.title, item.kind, status, item.filename, text)
     if status == "DONE":
         validate_done(candidate)
+        if _field(item.text, "Verification evidence") == "REQUIRED":
+            from verification import validate
+
+            validate(root, work_id, kind=item.kind)
     path.write_text(text, encoding="utf-8", newline="\n")
     sync(root)
 

@@ -73,6 +73,8 @@ SHARED = [
     "scripts/skill_qa.py",
     "scripts/hooks.py",
     "scripts/continuity.py",
+    "scripts/verification.py",
+    "docs/verification.json",
     *[
         f".agents/skills/{name}/evals/cases.json"
         for name in (
@@ -188,7 +190,12 @@ def test_manifest_schema_matches_generated_contract() -> None:
     ownership = schema["properties"]["ownership"]
     assert ownership["required"] == ["project_owned", "shared", "generated"]
     assert set(ownership["properties"]) == {"project_owned", "shared", "generated"}
-    assert schema["properties"]["profile"]["enum"] == ["minimal", "application", "service"]
+    assert schema["properties"]["profile"]["enum"] == [
+        "minimal",
+        "application",
+        "service",
+        "infrastructure",
+    ]
 
 
 def test_hyphen_name_maps_package(tmp_path: Path) -> None:

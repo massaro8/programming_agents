@@ -1,6 +1,6 @@
 # Codebase Map
 
-Structure fingerprint: `2a457e6df1e5`
+Structure fingerprint: `2e3ff230032f`
 
 Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 
@@ -81,7 +81,10 @@ Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 - `docs/ROADMAP.md`
 - `docs/SKILL_QA_AND_CONTINUITY.md`
 - `docs/USER_GUIDE.md`
+- `docs/VERIFICATION_EVIDENCE.md`
 - `docs/adr/0000-template.md`
+- `docs/adr/0001-static-project-families.md`
+- `docs/adr/0002-bundled-infrastructure-composition.md`
 - `docs/audits/ADVERSARIAL_STRESS_AUDIT.md`
 - `docs/audits/BOOT_001_AUDIT.md`
 - `docs/audits/BOOT_002_AUDIT.md`
@@ -100,9 +103,11 @@ Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 - `docs/audits/HARDEN_002_AUDIT.md`
 - `docs/audits/INIT_001_AUDIT.md`
 - `docs/audits/INIT_002_AUDIT.md`
+- `docs/audits/MULTI_PROJECT_FINAL_AUDIT.md`
 - `docs/audits/PHASE0_BASELINE_AUDIT.md`
 - `docs/audits/PRODUCTIZE_001_AUDIT.md`
 - `docs/audits/PYT_001_AUDIT.md`
+- `docs/audits/READY_FOR_PROJECTS_FINAL.md`
 - `docs/audits/RELEASE_READINESS_AUDIT.md`
 - `docs/audits/REL_001_AUDIT.md`
 - `docs/audits/STRESS_FIX_001_AUDIT.md`
@@ -142,10 +147,12 @@ Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 
 ### `src`
 - `src/agentready/__init__.py`
+- `src/agentready/aws_inspection.py`
 - `src/agentready/bootstrap.py`
 - `src/agentready/cli.py`
 - `src/agentready/continuity.py`
 - `src/agentready/core/__init__.py`
+- `src/agentready/core/families.py`
 - `src/agentready/core/inventory.py`
 - `src/agentready/core/ownership.py`
 - `src/agentready/core/profiles.py`
@@ -155,15 +162,115 @@ Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 - `src/agentready/doctor/__init__.py`
 - `src/agentready/doctor/codebase_map.py`
 - `src/agentready/doctor/evolution.py`
+- `src/agentready/doctor/infrastructure.py`
 - `src/agentready/doctor/inspector.py`
 - `src/agentready/doctor/serialization.py`
 - `src/agentready/doctor/work.py`
+- `src/agentready/environment_contracts.py`
 - `src/agentready/hooks.py`
 - `src/agentready/local_paths.py`
 - `src/agentready/render/__init__.py`
 - `src/agentready/render/generator.py`
 - `src/agentready/skill_qa.py`
 - `src/agentready/templates/__init__.py`
+- `src/agentready/templates/cloudformation/__init__.py`
+- `src/agentready/templates/cloudformation/copier.yml`
+- `src/agentready/templates/cloudformation/template/.agentready/manifest.toml.jinja`
+- `src/agentready/templates/cloudformation/template/.agents/skills/aws-infrastructure-inspection/SKILL.md`
+- `src/agentready/templates/cloudformation/template/.agents/skills/aws-infrastructure-inspection/evals/cases.json`
+- `src/agentready/templates/cloudformation/template/.agents/skills/bug-investigation/SKILL.md`
+- `src/agentready/templates/cloudformation/template/.agents/skills/bug-investigation/evals/cases.json`
+- `src/agentready/templates/cloudformation/template/.agents/skills/cloudformation-change/SKILL.md`
+- `src/agentready/templates/cloudformation/template/.agents/skills/cloudformation-change/evals/cases.json`
+- `src/agentready/templates/cloudformation/template/.agents/skills/documentation/SKILL.md`
+- `src/agentready/templates/cloudformation/template/.agents/skills/documentation/evals/cases.json`
+- `src/agentready/templates/cloudformation/template/.agents/skills/maintenance/SKILL.md`
+- `src/agentready/templates/cloudformation/template/.agents/skills/maintenance/evals/cases.json`
+- `src/agentready/templates/cloudformation/template/.agents/skills/module-placement/SKILL.md`
+- `src/agentready/templates/cloudformation/template/.agents/skills/module-placement/evals/cases.json`
+- `src/agentready/templates/cloudformation/template/.agents/skills/refactoring/SKILL.md`
+- `src/agentready/templates/cloudformation/template/.agents/skills/refactoring/evals/cases.json`
+- `src/agentready/templates/cloudformation/template/.agents/skills/repo-explore/SKILL.md`
+- `src/agentready/templates/cloudformation/template/.agents/skills/repo-explore/evals/cases.json`
+- `src/agentready/templates/cloudformation/template/.agents/skills/security-review/SKILL.md`
+- `src/agentready/templates/cloudformation/template/.agents/skills/security-review/evals/cases.json`
+- `src/agentready/templates/cloudformation/template/.cfnlintrc`
+- `src/agentready/templates/cloudformation/template/.claude/skills/aws-infrastructure-inspection/SKILL.md`
+- `src/agentready/templates/cloudformation/template/.claude/skills/bug-investigation/SKILL.md.jinja`
+- `src/agentready/templates/cloudformation/template/.claude/skills/cloudformation-change/SKILL.md.jinja`
+- `src/agentready/templates/cloudformation/template/.claude/skills/documentation/SKILL.md.jinja`
+- `src/agentready/templates/cloudformation/template/.claude/skills/maintenance/SKILL.md.jinja`
+- `src/agentready/templates/cloudformation/template/.claude/skills/module-placement/SKILL.md.jinja`
+- `src/agentready/templates/cloudformation/template/.claude/skills/refactoring/SKILL.md.jinja`
+- `src/agentready/templates/cloudformation/template/.claude/skills/repo-explore/SKILL.md.jinja`
+- `src/agentready/templates/cloudformation/template/.claude/skills/security-review/SKILL.md.jinja`
+- `src/agentready/templates/cloudformation/template/.github/workflows/ci.yml`
+- `src/agentready/templates/cloudformation/template/.gitignore`
+- `src/agentready/templates/cloudformation/template/AGENTS.md`
+- `src/agentready/templates/cloudformation/template/CLAUDE.md`
+- `src/agentready/templates/cloudformation/template/README.md.jinja`
+- `src/agentready/templates/cloudformation/template/bitbucket-pipelines.yml`
+- `src/agentready/templates/cloudformation/template/docs/ARCHITECTURE.md`
+- `src/agentready/templates/cloudformation/template/docs/adr/0000-template.md`
+- `src/agentready/templates/cloudformation/template/docs/agent/index.md`
+- `src/agentready/templates/cloudformation/template/docs/agent/standards/architecture.md.jinja`
+- `src/agentready/templates/cloudformation/template/docs/agent/standards/context-efficiency.md`
+- `src/agentready/templates/cloudformation/template/docs/agent/standards/dependencies.md`
+- `src/agentready/templates/cloudformation/template/docs/agent/standards/documentation.md`
+- `src/agentready/templates/cloudformation/template/docs/agent/standards/module-placement.md.jinja`
+- `src/agentready/templates/cloudformation/template/docs/agent/standards/security.md`
+- `src/agentready/templates/cloudformation/template/docs/agent/standards/testing.md`
+- `src/agentready/templates/cloudformation/template/docs/agent/workflows/bugfix.md`
+- `src/agentready/templates/cloudformation/template/docs/agent/workflows/documentation.md`
+- `src/agentready/templates/cloudformation/template/docs/agent/workflows/feature.md`
+- `src/agentready/templates/cloudformation/template/docs/agent/workflows/maintenance.md`
+- `src/agentready/templates/cloudformation/template/docs/agent/workflows/module-placement.md`
+- `src/agentready/templates/cloudformation/template/docs/agent/workflows/refactor.md`
+- `src/agentready/templates/cloudformation/template/docs/agent/workflows/repo-explore.md`
+- `src/agentready/templates/cloudformation/template/docs/agent/workflows/security.md`
+- `src/agentready/templates/cloudformation/template/docs/changelog/index.md`
+- `src/agentready/templates/cloudformation/template/docs/generated/CODEBASE_MAP.md.jinja`
+- `src/agentready/templates/cloudformation/template/docs/infrastructure/ENGINEERING.md`
+- `src/agentready/templates/cloudformation/template/docs/infrastructure/environments.json`
+- `src/agentready/templates/cloudformation/template/docs/infrastructure/parameters.json`
+- `src/agentready/templates/cloudformation/template/docs/verification.json`
+- `src/agentready/templates/cloudformation/template/docs/work/index.md`
+- `src/agentready/templates/cloudformation/template/docs/work/templates/bugfix.md`
+- `src/agentready/templates/cloudformation/template/docs/work/templates/documentation.md`
+- `src/agentready/templates/cloudformation/template/docs/work/templates/feature.md`
+- `src/agentready/templates/cloudformation/template/docs/work/templates/maintenance.md`
+- `src/agentready/templates/cloudformation/template/docs/work/templates/refactor.md`
+- `src/agentready/templates/cloudformation/template/docs/work/templates/security.md`
+- `src/agentready/templates/cloudformation/template/parameters/sandbox.json`
+- `src/agentready/templates/cloudformation/template/policies/security.guard`
+- `src/agentready/templates/cloudformation/template/scripts/aws_inspection.py.jinja`
+- `src/agentready/templates/cloudformation/template/scripts/context.py.jinja`
+- `src/agentready/templates/cloudformation/template/scripts/continuity.py.jinja`
+- `src/agentready/templates/cloudformation/template/scripts/environment_contracts.py.jinja`
+- `src/agentready/templates/cloudformation/template/scripts/fixture_check.py`
+- `src/agentready/templates/cloudformation/template/scripts/generate_codebase_map.py`
+- `src/agentready/templates/cloudformation/template/scripts/hooks.py.jinja`
+- `src/agentready/templates/cloudformation/template/scripts/infrastructure_checks.py`
+- `src/agentready/templates/cloudformation/template/scripts/local_paths.py.jinja`
+- `src/agentready/templates/cloudformation/template/scripts/project.py`
+- `src/agentready/templates/cloudformation/template/scripts/skill_check.py.jinja`
+- `src/agentready/templates/cloudformation/template/scripts/skill_qa.py.jinja`
+- `src/agentready/templates/cloudformation/template/scripts/skill_routes.py.jinja`
+- `src/agentready/templates/cloudformation/template/scripts/status.py.jinja`
+- `src/agentready/templates/cloudformation/template/scripts/verification.py.jinja`
+- `src/agentready/templates/cloudformation/template/scripts/work_registry.py.jinja`
+- `src/agentready/templates/cloudformation/template/templates/storage.yaml`
+- `src/agentready/templates/cloudformation/template/tests/fixtures/broken-reference.yaml`
+- `src/agentready/templates/cloudformation/template/tests/fixtures/invalid-property.yaml`
+- `src/agentready/templates/cloudformation/template/tests/fixtures/missing-encryption.yaml`
+- `src/agentready/templates/cloudformation/template/tests/fixtures/missing-public-access-block.yaml`
+- `src/agentready/templates/cloudformation/template/tests/fixtures/missing-tls-policy.yaml`
+- `src/agentready/templates/cloudformation/template/tests/fixtures/public-s3.yaml`
+- `src/agentready/templates/cloudformation/template/tests/fixtures/skill_routing.json`
+- `src/agentready/templates/cloudformation/template/tests/fixtures/unrestricted-ingress.yaml`
+- `src/agentready/templates/cloudformation/template/tests/fixtures/valid-network.yaml`
+- `src/agentready/templates/cloudformation/template/tests/fixtures/valid-renamed.yaml`
+- `src/agentready/templates/cloudformation/template/tests/fixtures/valid.yaml`
 - `src/agentready/templates/python/__init__.py`
 - `src/agentready/templates/python/copier.yml`
 - `src/agentready/templates/python/template/.agentready/manifest.toml.jinja`
@@ -219,6 +326,7 @@ Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 - `src/agentready/templates/python/template/docs/changelog/index.md`
 - `src/agentready/templates/python/template/docs/generated/CODEBASE_MAP.md.jinja`
 - `src/agentready/templates/python/template/docs/modules/greeting.md.jinja`
+- `src/agentready/templates/python/template/docs/verification.json`
 - `src/agentready/templates/python/template/docs/work/index.md`
 - `src/agentready/templates/python/template/docs/work/templates/bugfix.md`
 - `src/agentready/templates/python/template/docs/work/templates/documentation.md`
@@ -242,6 +350,7 @@ Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 - `src/agentready/templates/python/template/scripts/skill_qa.py.jinja`
 - `src/agentready/templates/python/template/scripts/skill_routes.py`
 - `src/agentready/templates/python/template/scripts/status.py`
+- `src/agentready/templates/python/template/scripts/verification.py.jinja`
 - `src/agentready/templates/python/template/scripts/work_registry.py`
 - `src/agentready/templates/python/template/src/{{ package_name }}/__init__.py.jinja`
 - `src/agentready/templates/python/template/src/{{ package_name }}/__main__.py.jinja`
@@ -260,16 +369,23 @@ Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 - `src/agentready/templates/python/template/src/{{ package_name }}/modules/greeting/domain/errors.py.jinja`
 - `src/agentready/templates/python/template/tests/fixtures/skill_routing.json`
 - `src/agentready/templates/python/template/tests/test_main.py.jinja`
+- `src/agentready/verification.py`
 
 ### `tests`
 - `tests/test_adversarial_boundaries.py`
+- `tests/test_aws_inspection.py`
 - `tests/test_bootstrap.py`
+- `tests/test_cloudformation.py`
 - `tests/test_codebase_map.py`
+- `tests/test_composition.py`
+- `tests/test_continuity_untracked.py`
 - `tests/test_detach.py`
 - `tests/test_detached_project.py`
 - `tests/test_doctor.py`
 - `tests/test_doctor_json.py`
+- `tests/test_environment_contracts.py`
 - `tests/test_evolution.py`
+- `tests/test_family_lifecycle.py`
 - `tests/test_final_ux.py`
 - `tests/test_generated_architecture.py`
 - `tests/test_generated_context.py`
@@ -285,6 +401,7 @@ Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 - `tests/test_stress_inventory.py`
 - `tests/test_stress_maintenance.py`
 - `tests/test_task_routing.py`
+- `tests/test_verification.py`
 - `tests/test_work_registry.py`
 
 ### `uv.lock`

@@ -43,7 +43,12 @@ def test_generated_guidance_profile_parity(tmp_path: Path, profile: str) -> None
     assert "independent final review" in security_workflow
     security_skill = (project / ".agents/skills/security-review/SKILL.md").read_text()
     assert "Review-only returns evidence without edits" in security_skill
-    assert security_skill == (project / ".claude/skills/security-review/SKILL.md").read_text()
+    from agentready.skill_qa import claude_view
+
+    assert (
+        claude_view(security_skill, "security-review")
+        == (project / ".claude/skills/security-review/SKILL.md").read_text()
+    )
     testing_standard = (project / "docs/agent/standards/testing.md").read_text()
     assert "live network access" in testing_standard
     assert "temporary directories and files" in testing_standard

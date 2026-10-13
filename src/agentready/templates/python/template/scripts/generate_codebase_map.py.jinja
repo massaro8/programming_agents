@@ -113,6 +113,18 @@ def render() -> str:
     ):
         if present:
             lines.append(f"- `{command}`")
+    if (ROOT / "infrastructure").is_dir():
+        from local_paths import local_path
+
+        lines.extend(["", "## Infrastructure files", ""])
+        for area in ("infrastructure", "docs/infrastructure"):
+            for path in sorted(
+                local_path(ROOT, area).rglob("*"),
+                key=lambda path: path.relative_to(ROOT).as_posix(),
+            ):
+                path = local_path(ROOT, path.relative_to(ROOT).as_posix())
+                if path.is_file():
+                    lines.append(f"- `{path.relative_to(ROOT).as_posix()}`")
     lines.append("")
     return "\n".join(lines)
 

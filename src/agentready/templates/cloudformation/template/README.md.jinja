@@ -1,0 +1,27 @@
+# {{ project_name }}
+
+Standalone CloudFormation infrastructure with private versioned S3 storage. Initialization and all engineering checks are offline and never deploy resources. Python 3.12+ runs the portable repository scripts; there is no Python application package.
+
+Install cfn-lint locally: `python -m venv .venv`, then `.venv/Scripts/python -m pip install cfn-lint==1.57.2` (POSIX: `.venv/bin/python`). Put `.venv/Scripts` or `.venv/bin` on PATH. Install Guard 3.2.1 into a user-selected local directory from https://github.com/aws-cloudformation/cloudformation-guard/releases and put that directory on PATH. No global installation is performed by this repository.
+
+Run `python scripts/project.py bootstrap` after installing the tools, or run `python scripts/project.py sync`, then `python scripts/project.py verify`. Both cfn-lint and cfn-guard must be available. These validate syntax, properties, references and selected security policies; they do not prove complete cloud security or successful deployment. Use `python scripts/project.py work --help`, `route --help`, `skill --help`, `checkpoint --help`, and `resume --help` for engineering workflows.
+
+`AGENTS.md` is canonical; `CLAUDE.md` imports it. Canonical skills are `.agents/skills`; sync creates thin Claude views. `.agentready/` is optional maintenance metadata: detach preserves infrastructure, checks, CI, work records and instructions. Deployment needs separate explicit authorization and account-aware review.
+
+## Repository organization
+
+`templates/` owns resources, inputs and outputs; `parameters/` stores synthetic environment parameter values; `policies/` owns Guard security constraints. `scripts/` contains standard-library governance commands. `.agents/skills/` is canonical; Claude adapters point there. Work records live in `docs/work/`; verification receipts in `docs/verification/` and checkpoints in `docs/work/checkpoints/`.
+
+## Add an infrastructure component
+
+Search the map and existing templates. Add a focused `templates/<component>.yaml`, avoiding fixed physical names, real account IDs and secrets. Describe parameter/output contracts, ownership and retention in `docs/ARCHITECTURE.md`. Add positive and relevant negative fixtures, then run `python scripts/project.py sync` and `python scripts/project.py verify`. Extend fixture_check.py explicitly when adding a new failure expectation.
+
+## Work lifecycle and evidence
+
+Create work with `python scripts/project.py work new --type FEATURE "Title"`; define normative scope and acceptance before moving BACKLOG to READY and IN_PROGRESS. Route using `python scripts/project.py route FEATURE --work-status READY`. Run `python scripts/project.py verify --work W001` before DONE and complete the implementation record. A successful receipt is required; prose claiming tests passed is insufficient. Existing DONE items predating receipts remain legacy records; receipts are required for newly created work. DOCS verification records governance and map checks without infrastructure tools. Use `checkpoint` and `resume` commands to preserve and validate interrupted context.
+
+## Security scope
+
+The static baseline checks S3 encryption presence, public access blocking, versioning, retention, plaintext-transport deny presence, and unrestricted ingress. For bucket templates the TLS check requires at least one suitable deny statement; explicitly review policy association and Resource coverage for every bucket. IAM least privilege, encryption details, network intent and account-specific controls require review. Static checks do not prove deployment success.
+
+Deployment is a separate manual action requiring explicit authorization, credentials, target-account review and change-set review. None of bootstrap, check, verify or sync deploys resources.

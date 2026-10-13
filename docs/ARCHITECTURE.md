@@ -109,6 +109,28 @@ Normal init is generation-only; opt-in `--bootstrap` runs the trusted local boot
 
 ## Template engine decision
 
+### Project families
+
+Initialization selects a static bundled family: `python` (default) or `cloudformation`.
+Python retains its minimal/application/service profile contracts. CloudFormation has one
+infrastructure contract with templates, synthetic parameters, Guard policies and standalone
+engineering scripts; it has no application package or package-build requirement. `core/families.py`
+resolves these explicit contracts, while rendering, read-only doctor and detach consume them.
+There is no plugin discovery or remote template execution. Missing family in schema-1 manifests
+means Python, preserving previously generated repositories and CLI invocations.
+
+Work, continuity and local file safety remain shared capabilities. Family-specific verification,
+skills and navigation stay in their bundled template. CloudFormation navigation inventories files
+without guessing YAML resource semantics; cfn-lint and Guard own template-aware validation.
+
+New repositories enable local verification receipts through `docs/verification.json`. Newly created
+work records require successful executed stages, matching accepted specification/input hashes and
+fresh evidence before DONE. Legacy records remain valid without retroactive receipts. Historical
+DONE evidence is validated as a historical receipt rather than compared against later development.
+Repository-local evidence improves correctness and staleness detection but does not guarantee
+protection against a malicious agent that can edit all local files. No independent trust or
+cryptographic attestation is claimed.
+
 Target production architecture: CLI + Copier as internal rendering/update engine.
 
 V0.1 must use only trusted bundled templates. Arbitrary remote template execution is out of scope.
@@ -164,3 +186,13 @@ V0.1 must not:
 - print secrets;
 - overwrite user-owned files implicitly;
 - run destructive Git commands automatically.
+
+## Bundled composition
+
+Python profiles may add the CloudFormation component with `--with cloudformation`.
+The manifest remains `family = "python"`, with an explicit components list; ownership
+is the union of the base profile and mapped bundled component paths. Infrastructure
+assets live under `infrastructure/`, guidance under `docs/infrastructure/`. One work
+registry, receipt store and project command interface serve both domains. Shared
+checks remain local and survive removal of `.agentready/`. Hybrid verification runs
+both domains conservatively, including DOCS tasks, so labels cannot hide infrastructure changes.

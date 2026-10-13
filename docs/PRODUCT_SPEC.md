@@ -23,7 +23,8 @@ Creates a new repository from a trusted bundled template.
 
 Acceptance:
 - refuses unsafe overwrite of non-empty directories;
-- produces a valid Python starter repository;
+- produces a valid Python starter repository (default family) or an explicitly selected
+  CloudFormation infrastructure repository;
 - produces compact `AGENTS.md` and selected thin agent adapters;
 - creates a repository-local, type-routed work registry and changelog with stdlib-only tooling;
   normative requirements remain human-owned;
@@ -35,9 +36,9 @@ Acceptance:
 Read-only inspection of repository readiness.
 
 Acceptance:
-- recognizes the supported AgentReady manifest and Python profile;
+- recognizes the supported AgentReady manifest, family and compatible profile;
 - validates manifest structure, ownership paths, declared artifacts, and local guidance references;
-- checks the canonical Python source/test/configuration/CI structure;
+- checks the selected family's canonical structure and metadata;
 - validates work item metadata and exact generated-index consistency without
   executing repository code;
 - checks supported dependency tables for an AgentReady dependency;
@@ -124,3 +125,11 @@ capabilities.
 V0.3: safe preview-first update flow backed by Copier and explicit ownership classes.
 
 V1.0: measured benchmark showing value on repository tasks and a stable detachment contract.
+
+### Python with CloudFormation
+
+`init TARGET --family python --profile minimal --with cloudformation` generates
+one repository with Python source and infrastructure templates, parameters, policies
+and fixtures. The optional component supports application and service profiles too.
+Offline environment declarations fail closed on unmapped branches and context mismatch.
+AWS inspection is optional, explicitly authorized and separate from offline checks.

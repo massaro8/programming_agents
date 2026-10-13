@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "family": "python",
+  "max_age_seconds": 86400,
+  "required_stages": {
+    "default": ["work registry", "architecture", "module knowledge", "skills", "commands", "codebase map", "format", "lint", "types", "tests", "build"],
+    "DOCS": ["work registry", "skills", "codebase map"]
+  }
+}

@@ -8,8 +8,9 @@ from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
 
+from agentready.core.families import get_contract
 from agentready.core.ownership import ArtifactOwnership, OwnershipClass
-from agentready.core.profiles import EVOLUTION_SHARED, get_profile
+from agentready.core.profiles import EVOLUTION_SHARED
 from agentready.core.project import Project, ProjectPath
 from agentready.doctor.codebase_map import validate as validate_codebase_map
 from agentready.doctor.evolution import validate as validate_evolution
@@ -184,17 +185,22 @@ def inspect(root: Path | str = ".") -> DoctorReport:
     manifest: dict[str, object] = {}
     valid = False
     profile_contract = None
+    family = "python"
     if manifest_ok and manifest_path is not None:
         try:
             parsed = tomllib.loads(manifest_path.read_text(encoding="utf-8"))
             ownership = parsed.get("ownership")
             profile_name = parsed.get("profile")
+            family = parsed.get("family", "python")
             try:
-                profile_contract = get_profile(profile_name)  # type: ignore[arg-type]
+                profile_contract = get_contract(
+                    family, profile_name, components=parsed.get("components", [])
+                )
             except ValueError:
                 profile_contract = None
             valid = (
                 parsed.get("schema") == 1
+                and isinstance(profile_name, str)
                 and profile_contract is not None
                 and parsed.get("generator") == "agentready"
                 and isinstance(parsed.get("generator_version"), str)
@@ -321,6 +327,9 @@ def inspect(root: Path | str = ".") -> DoctorReport:
             refs_ok = False
         else:
             refs.update(_guidance_references(claude_text))
+            refs.update(re.findall(r"(?m)^@([^\s]+)$", claude_text))
+            if _safe_file(project, "docs/verification.json"):
+                refs_ok &= bool(re.search(r"(?m)^@AGENTS\.md$", claude_text))
     broken_reference: ProjectPath | None = None
     for ref in sorted(refs):
         ref_pp, path = _safe(project, ref)
@@ -348,7 +357,7 @@ def inspect(root: Path | str = ".") -> DoctorReport:
         (project.path / x).is_dir()
         and not (project.path / x).is_symlink()
         and not (project.path / x).is_junction()
-        for x in ("src", "tests")
+        for x in (("src", "tests") if family == "python" else ("templates", "policies", "tests"))
     )
     findings.append(
         _finding(
@@ -360,9 +369,18 @@ def inspect(root: Path | str = ".") -> DoctorReport:
         )
     )
     map_pp, map_text = _read_safe_text(project, "docs/generated/CODEBASE_MAP.md")
-    map_ok = profile_contract is not None and validate_codebase_map(
-        project.path, package, profile_contract.name, map_text
-    )
+    if family == "cloudformation":
+        from agentready.doctor.infrastructure import validate_map
+
+        map_ok = validate_map(project.path, map_text)
+    else:
+        map_ok = profile_contract is not None and validate_codebase_map(
+            project.path, package, profile_contract.name, map_text
+        )
+        if manifest.get("components"):
+            from agentready.doctor.infrastructure import validate_map
+
+            map_ok &= validate_map(project.path, map_text, composed=True)
     findings.append(
         _finding(
             "repository.codebase_map",
@@ -375,7 +393,11 @@ def inspect(root: Path | str = ".") -> DoctorReport:
     )
     independence = False
     py_pp, py_path = _safe(project, "pyproject.toml")
-    if py_path is not None and py_path.is_file():
+    if family == "cloudformation":
+        from agentready.doctor.infrastructure import independent
+
+        independence = independent(project.path)
+    if family == "python" and py_path is not None and py_path.is_file():
         try:
             values = _dependency_values(tomllib.loads(py_path.read_text(encoding="utf-8")))
             independence = values is not None and all(

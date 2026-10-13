@@ -1,0 +1,1 @@
+{"schema_version": 1, "family": "cloudformation", "max_age_seconds": 86400, "required_stages": {"default": ["work registry", "skills", "codebase map", "cfn-lint", "Guard", "negative fixtures"], "DOCS": ["work registry", "skills", "codebase map"]}}

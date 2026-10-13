@@ -1,0 +1,9 @@
+{{ environment_contracts_source }}
+
+if __name__ == "__main__":
+    import sys
+
+    errors = validate_contracts(Path(__file__).resolve().parents[1])
+    for error in errors:
+        print(error, file=sys.stderr)
+    raise SystemExit(bool(errors))

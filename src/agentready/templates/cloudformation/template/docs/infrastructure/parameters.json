@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "parameters": [
+    {
+      "name": "Environment",
+      "type": "String",
+      "required": true,
+      "source": "literal",
+      "environment": "sandbox",
+      "sensitive": false,
+      "default": "sandbox"
+    }
+  ]
+}

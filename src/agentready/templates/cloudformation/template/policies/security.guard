@@ -1,0 +1,32 @@
+let buckets = Resources.*[ Type == 'AWS::S3::Bucket' ]
+rule bucket_controls when %buckets !empty {
+  %buckets {
+    Properties.BucketEncryption.ServerSideEncryptionConfiguration !empty
+    Properties.PublicAccessBlockConfiguration.BlockPublicAcls == true
+    Properties.PublicAccessBlockConfiguration.IgnorePublicAcls == true
+    Properties.PublicAccessBlockConfiguration.BlockPublicPolicy == true
+    Properties.PublicAccessBlockConfiguration.RestrictPublicBuckets == true
+    Properties.VersioningConfiguration.Status == 'Enabled'
+    DeletionPolicy == 'Retain'
+    UpdateReplacePolicy == 'Retain'
+  }
+}
+let groups = Resources.*[ Type == 'AWS::EC2::SecurityGroup' ]
+rule scoped_ingress when %groups !empty {
+  %groups.Properties.SecurityGroupIngress[*] {
+    CidrIp != '0.0.0.0/0'
+    CidrIpv6 != '::/0' OR CidrIpv6 !exists
+  }
+}
+
+# Template-level TLS deny baseline; per-bucket association needs explicit review.
+let bucket_policies = Resources.*[ Type == 'AWS::S3::BucketPolicy' ]
+rule storage_tls_policy when %buckets !empty {
+  %bucket_policies !empty
+  some %bucket_policies.Properties.PolicyDocument.Statement[*] {
+    Effect == 'Deny'
+    Principal == '*'
+    Action == 's3:*'
+    Condition.Bool.'aws:SecureTransport' == 'false'
+  }
+}

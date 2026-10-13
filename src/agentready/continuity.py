@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import re
 import shutil
 import subprocess
@@ -78,26 +79,73 @@ def digest(root: Path, relative: str) -> str:
     return hasher.hexdigest()
 
 
+def _project_names(root: Path) -> list[str]:
+    """Bounded relevant inventory for projects not yet initialized with Git."""
+    names = [path.name for path in root.iterdir() if path.is_file()]
+    for area in (
+        "src",
+        "infrastructure",
+        "templates",
+        "parameters",
+        "policies",
+        "scripts",
+        "tests",
+        "docs",
+        ".agents",
+        ".claude",
+    ):
+        base = local_path(root, area)
+        for directory, children, files in os.walk(base, followlinks=False):
+            children[:] = [
+                name
+                for name in children
+                if name not in ("__pycache__", "checkpoints", "evidence", "verification")
+            ]
+            for name in (*children, *files):
+                relative = (Path(directory) / name).relative_to(root).as_posix()
+                local_path(root, relative)
+            names.extend((Path(directory) / name).relative_to(root).as_posix() for name in files)
+            if len(names) > 10000:
+                raise ValueError("checkpoint inventory exceeds 10000 files")
+    return names
+
+
 def tracked_digest(root: Path) -> str | None:
-    """Track committed/indexed files, including dirty content, without storing it."""
+    """Hash tracked and non-ignored new files without storing their contents."""
     executable = git_executable(root)
-    if executable is None:
-        return None
     try:
-        result = subprocess.run(
-            [executable, "ls-files", "-z"], cwd=root, capture_output=True, check=False, timeout=10
+        result = (
+            subprocess.run(
+                [executable, "ls-files", "--cached", "--others", "--exclude-standard", "-z"],
+                cwd=root,
+                capture_output=True,
+                check=False,
+                timeout=10,
+            )
+            if executable is not None
+            else None
         )
-        if result.returncode:
-            return None
-        names = result.stdout.decode("utf-8").split("\0")
+        names = (
+            result.stdout.decode("utf-8").split("\0")
+            if result is not None and result.returncode == 0
+            else _project_names(root)
+        )
+        if len(names) > 10001:
+            raise ValueError("checkpoint inventory exceeds 10000 files; scope ignored files")
         hashes = []
+        total = 0
         for name in sorted(set(names)):
-            if not name or name.startswith(("docs/work/checkpoints/", "docs/work/evidence/")):
+            if not name or name.startswith(
+                ("docs/work/checkpoints/", "docs/work/evidence/", "docs/verification/", ".git/")
+            ):
                 continue
             try:
-                value = digest(root, name)
+                total += local_path(root, name).stat().st_size
+                value = digest(root, name) if total <= 100 * 1024 * 1024 else "LIMIT"
             except (OSError, ValueError):
                 value = "MISSING_OR_UNSAFE"
+            if total > 100 * 1024 * 1024:
+                raise ValueError("checkpoint inventory exceeds 100 MiB; scope ignored files")
             hashes.append(f"{name}:{value}")
         return hashlib.sha256("\n".join(hashes).encode()).hexdigest()
     except (OSError, UnicodeError, subprocess.TimeoutExpired):
@@ -196,7 +244,9 @@ def resume(root: Path, work_id: str) -> dict[str, Any]:
     if revision(root) != data["revision"]:
         warnings.append("repository revision changed")
     if tracked_digest(root) != data["tracked_digest"]:
-        warnings.append("tracked files changed; previous validation must be reviewed")
+        warnings.append(
+            "tracked files changed (including untracked project files); review previous validation"
+        )
     for relative, expected in sorted(hashes.items()):
         if not isinstance(expected, str) or not re.fullmatch(r"[a-f0-9]{64}", expected):
             raise ValueError("invalid checkpoint file hash")

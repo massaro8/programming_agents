@@ -16,6 +16,7 @@ from agentready.render.generator import generate_project
 def project(tmp_path: Path) -> Path:
     root = tmp_path / "sample"
     generate_project(root)
+    (root / "docs/verification.json").unlink(missing_ok=True)
     return root
 
 

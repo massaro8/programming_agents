@@ -34,6 +34,14 @@ Accepted IN_PROGRESS work can continue directly. Record implementation, verifica
 impact and changelog before `work transition W001 DONE`. See
 [the feature workflow](docs/agent/workflows/feature.md).
 
+Before DONE, run `python scripts/project.py sync` then
+`python scripts/project.py verify --work W001`. New work requires successful machine-generated
+evidence in `docs/verification/W001.json`, tied to the accepted scope, file hashes, tools and
+verification contract. Changed inputs or expired evidence require verification again. DOCS work
+runs proportional registry, skill and map checks. Existing records without the REQUIRED evidence
+marker remain legacy-compatible. Local evidence detects mistakes and stale results; an agent
+able to edit every local file can bypass it. It is not independent attestation.
+
 `python scripts/project.py route FEATURE --complexity LOCAL --work-status READY` recommends
 skill, plan, context, validation, review and abstract model class from explicit inputs.
 For unfamiliar boundaries use `--complexity CROSS_MODULE --unknown-area`; risk signals such as

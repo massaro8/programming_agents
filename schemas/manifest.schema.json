@@ -3,22 +3,110 @@
   "$id": "https://example.invalid/agentready/manifest.schema.json",
   "title": "AgentReady Manifest",
   "type": "object",
-  "required": ["schema", "profile", "generator", "generator_version", "ownership"],
+  "required": [
+    "schema",
+    "profile",
+    "generator",
+    "generator_version",
+    "ownership"
+  ],
   "properties": {
-    "schema": {"type": "integer", "const": 1},
-    "profile": {"type": "string", "enum": ["minimal", "application", "service"]},
-    "generator": {"type": "string", "const": "agentready"},
-    "generator_version": {"type": "string", "minLength": 1},
+    "schema": {
+      "type": "integer",
+      "const": 1
+    },
+    "family": {
+      "type": "string",
+      "enum": [
+        "python",
+        "cloudformation"
+      ],
+      "default": "python"
+    },
+    "profile": {
+      "type": "string",
+      "enum": [
+        "minimal",
+        "application",
+        "service",
+        "infrastructure"
+      ]
+    },
+    "generator": {
+      "type": "string",
+      "const": "agentready"
+    },
+    "generator_version": {
+      "type": "string",
+      "minLength": 1
+    },
     "ownership": {
       "type": "object",
-      "required": ["project_owned", "shared", "generated"],
+      "required": [
+        "project_owned",
+        "shared",
+        "generated"
+      ],
       "properties": {
-        "project_owned": {"type": "array", "items": {"type": "string"}},
-        "shared": {"type": "array", "items": {"type": "string"}},
-        "generated": {"type": "array", "items": {"type": "string"}}
+        "project_owned": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "shared": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "generated": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
       },
       "additionalProperties": false
+    },
+    "components": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "cloudformation"
+        ]
+      },
+      "uniqueItems": true,
+      "maxItems": 1
     }
   },
-  "additionalProperties": true
+  "additionalProperties": true,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "components": {
+            "minItems": 1
+          }
+        },
+        "required": [
+          "components"
+        ]
+      },
+      "then": {
+        "properties": {
+          "family": {
+            "const": "python"
+          },
+          "profile": {
+            "enum": [
+              "minimal",
+              "application",
+              "service"
+            ]
+          }
+        }
+      }
+    }
+  ]
 }

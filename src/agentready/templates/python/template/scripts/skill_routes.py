@@ -5,6 +5,8 @@ from __future__ import annotations
 import argparse
 import json
 
+FAMILY = "python"
+
 EXPECTED_SKILLS = (
     "bug-investigation",
     "documentation",
@@ -54,6 +56,16 @@ SECURITY_MODES = {
     "implementation": {"ready_item_required": True, "production_edits_allowed": True},
 }
 
+if FAMILY in ("cloudformation", "hybrid"):
+    EXPECTED_SKILLS += ("aws-infrastructure-inspection",)
+if FAMILY == "hybrid":
+    EXPECTED_SKILLS += ("cloudformation-change",)
+if FAMILY == "cloudformation":
+    EXPECTED_SKILLS = tuple(
+        "cloudformation-change" if name == "feature-builder" else name for name in EXPECTED_SKILLS
+    )
+    ROUTES["FEATURE"]["skill"] = "cloudformation-change"
+
 COMPLEXITIES = ("TRIVIAL", "LOCAL", "CROSS_MODULE", "ARCHITECTURAL")
 RISK_SIGNALS = (
     "security",
@@ -67,6 +79,8 @@ RISK_SIGNALS = (
     "infrastructure",
     "destructive-data",
 )
+if FAMILY in ("cloudformation", "hybrid"):
+    RISK_SIGNALS = (*RISK_SIGNALS, "iam", "network", "security-group")
 
 
 def recommend(
@@ -120,7 +134,7 @@ def recommend(
         if independent_domains >= 2:
             subagent = "consider-scoped-parallel-explorers"
     route = ROUTES[work_type]
-    return {
+    result = {
         "work_type": work_type,
         "complexity": complexity,
         "risk": "HIGH" if high_risk else "NORMAL",
@@ -140,6 +154,14 @@ def recommend(
             work_status in ("READY", "IN_PROGRESS") if work_type == "FEATURE" else None
         ),
     }
+    if FAMILY == "cloudformation":
+        result.update(
+            family=FAMILY,
+            scope="explicit template, parameter and policy scope",
+            impact_assessment="resource replacement, permissions and affected environments",
+            security_review="required" if high_risk else "selected policy review",
+        )
+    return result
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -153,6 +175,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--work-status", choices=("BACKLOG", "READY", "IN_PROGRESS", "BLOCKED", "DONE")
     )
+    parser.add_argument("--domain", choices=("python", "infrastructure", "aws-inspection", "both"))
     parser.add_argument("--format", choices=("text", "json"), default="text")
     args = parser.parse_args(argv)
     try:
@@ -167,6 +190,37 @@ def main(argv: list[str] | None = None) -> int:
         )
     except ValueError as exc:
         parser.error(str(exc))
+    domain = args.domain or ("infrastructure" if FAMILY == "cloudformation" else "python")
+    if FAMILY == "cloudformation" and domain in ("python", "both"):
+        parser.error("Python domains require a Python repository")
+    if domain != "python" and FAMILY == "python":
+        parser.error("domain requires the CloudFormation family or component")
+    if domain in ("infrastructure", "both", "aws-inspection"):
+        result["domain"] = domain
+        if domain == "aws-inspection":
+            result["skills"] = ["aws-infrastructure-inspection"]
+        elif args.work_type == "FEATURE":
+            result["skills"] = (
+                [result["skill"], "cloudformation-change"]
+                if domain == "both"
+                else ["cloudformation-change"]
+            )
+        else:
+            result["skills"] = [result["skill"]]
+        result["skill"] = result["skills"][0]
+        if FAMILY == "hybrid":
+            infrastructure_workflow = result["workflow"].replace(
+                "docs/agent/", "docs/infrastructure/"
+            )
+            result["infrastructure_workflow"] = infrastructure_workflow
+            if domain == "infrastructure":
+                result["workflow"] = infrastructure_workflow
+                result["standards"] = [
+                    path.replace("docs/agent/", "docs/infrastructure/")
+                    for path in result["standards"]
+                ]
+        if domain == "aws-inspection":
+            result["workflow"] = "docs/infrastructure/ENGINEERING.md"
     if args.format == "json":
         print(json.dumps(result, indent=2, sort_keys=True))
     else:

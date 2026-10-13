@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "skill": "aws-infrastructure-inspection",
+  "include": [
+    "inspect existing stack"
+  ],
+  "exclude": [
+    "deploy",
+    "validate offline"
+  ],
+  "cases": [
+    {
+      "id": "named-stack",
+      "task": "Inspect existing stack sandbox-storage with authorized read-only profile",
+      "trigger": true,
+      "criteria": [
+        "explicit_authorization",
+        "identity_before_resource",
+        "safe_metadata"
+      ]
+    },
+    {
+      "id": "offline",
+      "task": "Validate local template offline",
+      "trigger": false,
+      "criteria": []
+    },
+    {
+      "id": "deploy",
+      "task": "Deploy infrastructure to production",
+      "trigger": false,
+      "criteria": []
+    }
+  ]
+}

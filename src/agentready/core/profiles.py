@@ -21,6 +21,8 @@ EVOLUTION_SHARED = (
     "scripts/skill_qa.py",
     "scripts/hooks.py",
     "scripts/continuity.py",
+    "scripts/verification.py",
+    "docs/verification.json",
     *(
         f".agents/skills/{name}/evals/cases.json"
         for name in (

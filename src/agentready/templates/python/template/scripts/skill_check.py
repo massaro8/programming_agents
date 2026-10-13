@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 
 from skill_qa import check as check_contract
-from skill_qa import definition
+from skill_qa import claude_view, definition
 from skill_routes import EXPECTED_SKILLS, ROUTES, SECURITY_MODES
 
 
@@ -67,7 +67,7 @@ def check(root: Path) -> None:
                         continue
                     if not (path.parent / target.split("#", 1)[0]).resolve().is_file():
                         raise SkillCheckError(f"broken skill link in {path}: {target}")
-            elif path.read_text(encoding="utf-8") != canonical_text.get(name):
+            elif path.read_text(encoding="utf-8") != claude_view(canonical_text[name], name):
                 raise SkillCheckError(f"provider skill drift: {name}")
         if len(frontmatter_names) != len(set(frontmatter_names)):
             raise SkillCheckError(f"duplicate frontmatter skill names in {label} tree")

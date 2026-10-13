@@ -1,0 +1,56 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Synthetic private artifact storage for offline engineering experiments only.
+Metadata:
+  AWSToolsMetrics:
+    AWSAgentToolkit: aws-cloudformation@3
+Parameters:
+  Environment:
+    Type: String
+    Default: sandbox
+    AllowedValues: [sandbox, test]
+Resources:
+  Artifacts:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Private versioned artifact storage; synthetic and never deployed.
+        must: [Encryption, Public access blocked, Retention, TLS only]
+    Properties:
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        IgnorePublicAcls: true
+        BlockPublicPolicy: true
+        RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+  ArtifactsPolicy:
+    Type: AWS::S3::BucketPolicy
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Reject plaintext transport to the artifact bucket.
+        must: [Keep explicit transport deny]
+    Properties:
+      Bucket: !Ref Artifacts
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource:
+              - !GetAtt Artifacts.Arn
+              - !Sub '${Artifacts.Arn}/*'
+            Condition:
+              Bool:
+                aws:SecureTransport: 'false'
+Outputs:
+  ArtifactBucket:
+    Value: !Ref Artifacts
+  ArtifactBucketArn:
+    Description: ARN of the local artifact bucket; no cross-stack export.
+    Value: !GetAtt Artifacts.Arn

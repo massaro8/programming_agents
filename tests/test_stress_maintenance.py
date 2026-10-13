@@ -64,6 +64,7 @@ def test_no_change_maintenance_finishes_normal_lifecycle(tmp_path: Path) -> None
         "### Verification performed\nproject.py check passed before completion; lockfile retained.",
     )
     item.write_text(text, encoding="utf-8")
+    run("verify", "--work", "W001")
     subprocess.run([*registry, "transition", "W001", "DONE"], cwd=root, check=True)
     run("sync")
     run("check")

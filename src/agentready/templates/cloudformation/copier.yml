@@ -1,0 +1,4 @@
+_subdirectory: template
+_min_copier_version: "9.18.2"
+_templates_suffix: .jinja
+_exclude: ["**/__pycache__", "**/*.pyc"]

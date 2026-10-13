@@ -236,7 +236,7 @@ def test_formal_detach_no_lock_in_qualification(tmp_path: Path, profile: str) ->
         reference in agents and (project / reference).is_file()
         for reference in ("docs/agent/index.md",)
     )
-    assert "[AGENTS.md](AGENTS.md)" in (project / "CLAUDE.md").read_text(encoding="utf-8")
+    assert (project / "CLAUDE.md").read_text(encoding="utf-8").strip() == "@AGENTS.md"
     app_wheel = next((project / "dist").glob("*.whl"))
     with zipfile.ZipFile(app_wheel) as archive:
         names = set(archive.namelist())

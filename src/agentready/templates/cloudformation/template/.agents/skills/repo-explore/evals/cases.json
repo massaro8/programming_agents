@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "skill": "repo-explore",
+  "include": [
+    "locate"
+  ],
+  "exclude": [
+    "change code"
+  ],
+  "cases": [
+    {
+      "id": "positive",
+      "task": "locate in the scoped work item",
+      "trigger": true,
+      "criteria": [
+        "affected_tests_identified",
+        "validation_executed",
+        "final_evidence_produced"
+      ]
+    },
+    {
+      "id": "negative",
+      "task": "Fix change code",
+      "trigger": false,
+      "criteria": []
+    }
+  ]
+}

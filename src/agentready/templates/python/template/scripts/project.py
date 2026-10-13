@@ -63,7 +63,7 @@ def run(stage: str, command: list[str]) -> int:
 
 
 def check_commands(uv: str) -> list[tuple[str, list[str]]]:
-    return [
+    commands = [
         ("work registry", [uv, "run", "--locked", "python", "scripts/work_registry.py", "check"]),
         ("architecture", [uv, "run", "--locked", "python", "scripts/architecture_check.py"]),
         (
@@ -81,6 +81,11 @@ def check_commands(uv: str) -> list[tuple[str, list[str]]]:
         ("types", [uv, "run", "--locked", "mypy", "src"]),
         ("tests", [uv, "run", "--locked", "pytest"]),
     ]
+    if (ROOT / "infrastructure").is_dir():
+        from infrastructure_checks import commands as infrastructure_commands
+
+        commands.extend(infrastructure_commands(ROOT))
+    return commands
 
 
 def execute(task: str, arguments: list[str] | None = None) -> int:
@@ -118,14 +123,48 @@ def execute(task: str, arguments: list[str] | None = None) -> int:
 
         return module_main(arguments)
     if task == "sync":
+        from local_paths import local_path, read_text
+        from skill_qa import claude_view
+        from skill_routes import EXPECTED_SKILLS
         from work_registry import sync
 
         try:
             sync(ROOT)
+            for name in EXPECTED_SKILLS:
+                text = read_text(ROOT, f".agents/skills/{name}/SKILL.md")
+                path = local_path(ROOT, f".claude/skills/{name}/SKILL.md")
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text(claude_view(text, name), encoding="utf-8", newline="\n")
         except (ValueError, OSError, UnicodeError) as exc:
             print(f"sync failed: {exc}", file=sys.stderr)
             return 1
         return run("codebase map", [sys.executable, "scripts/generate_codebase_map.py"])
+
+    if task == "verify" and arguments:
+        from verification import VerificationError, record
+        from work_registry import read_work
+
+        try:
+            work_id = arguments[0]
+            item = next((item for item in read_work(ROOT) if item.work_id == work_id), None)
+            if item is None or item.status != "IN_PROGRESS":
+                raise VerificationError("verification requires an IN_PROGRESS work item")
+            uv = shutil.which("uv")
+            if uv is None:
+                raise VerificationError("uv is required")
+            commands = check_commands(uv)
+            if item.kind == "DOCS" and not (ROOT / "infrastructure").is_dir():
+                commands = [
+                    entry
+                    for entry in commands
+                    if entry[0] in {"work registry", "skills", "codebase map"}
+                ]
+            else:
+                commands.append(("build", [uv, "build"]))
+            return record(ROOT, work_id, item.kind, commands, run)
+        except (ValueError, OSError) as exc:
+            print(f"verification failed: {exc}", file=sys.stderr)
+            return 1
 
     uv = shutil.which("uv")
     if uv is None:
@@ -167,7 +206,9 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
     for name in COMMANDS[:6]:
-        commands.add_parser(name, help=HELP[name])
+        command = commands.add_parser(name, help=HELP[name])
+        if name == "verify":
+            command.add_argument("--work")
     context = commands.add_parser("context", help=HELP["context"])
     target = context.add_mutually_exclusive_group()
     target.add_argument("--next", action="store_true")
@@ -199,6 +240,8 @@ def main(argv: list[str] | None = None) -> int:
         if args.responsibility:
             parameters.extend(["--responsibility", args.responsibility])
         return execute("module", parameters)
+    if args.command == "verify" and args.work:
+        return execute("verify", [args.work])
     return execute(args.command)
 
 
