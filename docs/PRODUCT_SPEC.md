@@ -1,5 +1,16 @@
 # Product Spec - AgentReady V0.1
 
+## Existing Git bootstrap repositories
+
+`init TARGET --into-existing` supports every existing family/profile combination.
+Only `.git` and the documented bootstrap files are accepted; no clean-tree condition
+is imposed. Git metadata, licenses and attributes remain unchanged. README and ignore
+rules are integrated deterministically without dropping user content. Initialization
+is staged and preflighted before publication; write failures roll back added artifacts
+and restore original bootstrap bytes. The initialization manifest is published last.
+Reinitialization, unexpected paths, unsafe links and linked worktrees are rejected.
+The original nonempty-directory protection remains the default.
+
 ## Product statement
 
 AgentReady is a detachable, vendor-neutral repository bootstrap and governance kit for coding agents.

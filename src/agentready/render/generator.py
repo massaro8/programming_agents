@@ -41,6 +41,7 @@ def generate_project(
     *,
     family: str = "python",
     components: tuple[str, ...] | list[str] = (),
+    into_existing: bool = False,
 ) -> Project:
     """Generate an independent project from an explicit trusted bundled family."""
 
@@ -56,6 +57,21 @@ def generate_project(
         raise GeneratorError("target and its ancestors must not be symlinks or junctions")
     if project.path.exists() and (project.path.is_file() or not project.path.is_dir()):
         raise GeneratorError("target must be a directory")
+    if into_existing:
+        from agentready.render.existing import ExistingInitError, initialize_existing
+
+        if ".." in absolute.parts:
+            raise GeneratorError("--into-existing requires a path without '..'; resolve it first")
+        try:
+            initialize_existing(
+                project.path,
+                lambda staged: generate_project(
+                    staged, profile, family=family, components=components
+                ),
+            )
+        except ExistingInitError as exc:
+            raise GeneratorError(str(exc)) from exc
+        return project
     if project.path.is_dir() and any(project.path.iterdir()):
         raise GeneratorError("target directory must be empty")
     try:

@@ -96,6 +96,33 @@ Packaged qualification, exact executed paths and residual limitations are record
 in [the preparation audit](docs/audits/READY_FOR_PROJECTS_FINAL.md).
 No remote CI, publication, deployment or live AWS inspection is claimed.
 
+## Initialize an existing empty Git repository
+
+```powershell
+git clone <repository-url>
+cd <repository>
+agentready init . --into-existing
+```
+
+Use `--family cloudformation` or `--with cloudformation` for the other project types;
+all Python profiles remain available. From a local wheel, use the same arguments
+after `uv tool run --from ./agentready-0.1.0-py3-none-any.whl agentready`.
+
+The repository may contain `.git`, `README.md`, `.gitignore`, `LICENSE`, `LICENSE.md`,
+`LICENSE.txt` and `.gitattributes`. Uncommitted bootstrap files are supported.
+Git metadata and license/attributes files remain untouched. Existing UTF-8 README
+content is retained verbatim, followed by one marked development section. Missing
+generated ignore rules are inserted before existing user rules, preserving their
+precedence. Existing marked sections, other files/directories and unsafe links are
+rejected before publication, with an actionable error. Linked Git worktrees are
+not supported; use a normal clone. Bootstrap files are limited to 1 MiB each.
+
+Generation is staged before publication, with rollback on ordinary write errors.
+Already initialized projects are rejected. Without `--into-existing`, the target
+must still be completely empty. Initialization does not reset, clean, checkout,
+commit or push Git. After initialization, synchronize dependencies and run
+`python scripts/project.py verify` as described above.
+
 ## Which profile should I choose?
 
 | Your goal | Profile | Actual contract |

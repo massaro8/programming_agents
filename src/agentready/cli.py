@@ -30,6 +30,11 @@ def build_parser() -> argparse.ArgumentParser:
         "init", help="create a trusted Python or CloudFormation project"
     )
     init_parser.add_argument("target", type=Path)
+    init_parser.add_argument(
+        "--into-existing",
+        action="store_true",
+        help="preserve an existing Git repository containing only supported bootstrap files",
+    )
     init_parser.add_argument("--family", choices=("python", "cloudformation"), default="python")
     init_parser.add_argument(
         "--with", dest="components", action="append", choices=("cloudformation",), default=[]
@@ -77,7 +82,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     if args.command == "init":
         try:
             generate_project(
-                args.target, profile=args.profile, family=args.family, components=args.components
+                args.target,
+                profile=args.profile,
+                family=args.family,
+                components=args.components,
+                into_existing=args.into_existing,
             )
         except (GeneratorError, TypeError, OSError) as exc:
             print(f"error: {exc}", file=sys.stderr)

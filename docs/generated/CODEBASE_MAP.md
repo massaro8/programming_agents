@@ -1,6 +1,6 @@
 # Codebase Map
 
-Structure fingerprint: `2e3ff230032f`
+Structure fingerprint: `49c8567e2386`
 
 Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 
@@ -170,6 +170,7 @@ Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 - `src/agentready/hooks.py`
 - `src/agentready/local_paths.py`
 - `src/agentready/render/__init__.py`
+- `src/agentready/render/existing.py`
 - `src/agentready/render/generator.py`
 - `src/agentready/skill_qa.py`
 - `src/agentready/templates/__init__.py`
@@ -385,6 +386,7 @@ Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 - `tests/test_doctor_json.py`
 - `tests/test_environment_contracts.py`
 - `tests/test_evolution.py`
+- `tests/test_existing_init.py`
 - `tests/test_family_lifecycle.py`
 - `tests/test_final_ux.py`
 - `tests/test_generated_architecture.py`
