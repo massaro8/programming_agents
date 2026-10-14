@@ -13,6 +13,12 @@ The original nonempty-directory protection remains the default.
 
 ## Product statement
 
+Explicit bootstrap prepares missing CloudFormation tools in project-local `.tools`
+using pinned cfn-lint and checksum-verified official Guard archives. Initial tool
+installation may use network access; ordinary checks remain offline. Existing tools
+are reused and no global installation or persistent PATH change is performed.
+`agentready bootstrap TARGET` retries preparation without regenerating project files.
+
 AgentReady is a detachable, vendor-neutral repository bootstrap and governance kit for coding agents.
 
 ## User problem

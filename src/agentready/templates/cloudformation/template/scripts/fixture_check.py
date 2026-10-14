@@ -1,8 +1,9 @@
 """Prove positive acceptance and seven negative policy/lint failures."""
 
-import shutil
 import subprocess
 from pathlib import Path
+
+from infrastructure_tools import find_tool
 
 ROOT = Path(__file__).resolve().parents[1]
 LINT_CASES = {"invalid-property": "E3002", "broken-reference": "E1020"}
@@ -37,7 +38,7 @@ def main():
             else (("cfn-lint",) if lint else ("cfn-guard",))
         )
         for name in names:
-            tool = shutil.which(name)
+            tool = find_tool(ROOT, name)
             if tool is None:
                 print(f"Missing {name}; see README.md local installation instructions")
                 return 1

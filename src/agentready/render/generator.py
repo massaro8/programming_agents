@@ -121,6 +121,7 @@ def generate_project(
         "verification",
         "environment_contracts",
         "aws_inspection",
+        "infrastructure_tools",
     ):
         data[f"{module}_source"] = (
             resources.files("agentready")
@@ -214,10 +215,13 @@ def _render_component(root: Path, data: dict[str, object]) -> None:
                     "scripts/fixture_check.py",
                     "scripts/environment_contracts.py",
                     "scripts/aws_inspection.py",
+                    "scripts/infrastructure_tools.py",
                 ):
                     text = text.replace(old, new)
             path.write_text(text, encoding="utf-8", newline="\n")
     workflow = root / ".github/workflows/ci.yml"
+    ignore = root / ".gitignore"
+    ignore.write_text(ignore.read_text(encoding="utf-8") + ".tools/\n", encoding="utf-8")
     infrastructure_ci = (
         resources.files("agentready.templates.cloudformation")
         .joinpath("template/.github/workflows/ci.yml")

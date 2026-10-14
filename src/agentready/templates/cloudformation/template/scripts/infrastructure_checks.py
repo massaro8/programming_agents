@@ -1,17 +1,19 @@
 """Shared offline infrastructure stage selection."""
 
-import shutil
 import sys
+
+from infrastructure_tools import find_tool
 
 
 def commands(root):
-    tools = {name: shutil.which(name) for name in ("cfn-lint", "cfn-guard")}
+    tools = {name: find_tool(root, name) for name in ("cfn-lint", "cfn-guard")}
     missing = [name for name, location in tools.items() if location is None]
     if missing:
         raise ValueError(
             "Missing required tools: "
             + ", ".join(missing)
-            + ". Install cfn-lint in a local .venv virtual environment. "
+            + ". Run python scripts/project.py bootstrap to prepare .tools executables "
+            "(or install cfn-lint in .venv). "
             "Download Guard from https://github.com/aws-cloudformation/"
             "cloudformation-guard/releases. Add local executables to PATH; see README.md."
         )

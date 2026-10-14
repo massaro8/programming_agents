@@ -177,6 +177,14 @@ def execute(task: str, arguments: list[str] | None = None) -> int:
         if not (ROOT / "uv.lock").is_file():
             print("bootstrap failed: uv sync did not create uv.lock", file=sys.stderr)
             return 1
+        if (ROOT / "infrastructure").is_dir():
+            from infrastructure_tools import prepare_tools
+
+            try:
+                prepare_tools(ROOT)
+            except (ValueError, OSError) as exc:
+                print(f"infrastructure bootstrap failed: {exc}", file=sys.stderr)
+                return 1
         return execute("check")
     elif task == "check":
         commands = check_commands(uv)

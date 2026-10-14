@@ -51,6 +51,10 @@ def build_parser() -> argparse.ArgumentParser:
         help="prepare and validate the generated project with uv",
     )
     doctor_parser = subparsers.add_parser("doctor", help="inspect a repository")
+    bootstrap_parser = subparsers.add_parser(
+        "bootstrap", help="prepare or retry an existing project"
+    )
+    bootstrap_parser.add_argument("path", nargs="?", type=Path, default=Path("."))
     doctor_parser.add_argument("path", nargs="?", type=Path, default=Path("."))
     doctor_parser.add_argument("--format", choices=("human", "json"), default="human")
     detach_parser = subparsers.add_parser("detach", help="remove AgentReady maintenance metadata")
@@ -100,6 +104,16 @@ def main(argv: Sequence[str] | None = None) -> int:
                 print(f"error: {exc}", file=sys.stderr)
                 return 1
         print(f"Created project at {args.target}")
+        return 0
+    if args.command == "bootstrap":
+        from agentready.bootstrap import BootstrapError, bootstrap_project
+
+        try:
+            bootstrap_project(args.path)
+        except (BootstrapError, ValueError, OSError) as exc:
+            print(f"error: {exc}", file=sys.stderr)
+            return 1
+        print(f"Prepared project at {args.path}")
         return 0
     if args.command == "doctor":
         report = inspect(args.path)

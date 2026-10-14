@@ -28,6 +28,16 @@ python scripts/project.py verify
 
 Omit `--bootstrap` to generate files without preparing an environment; run
 `python scripts/project.py bootstrap` later. Bootstrap failure leaves the repository for repair.
+For CloudFormation and Hybrid, bootstrap installs missing cfn-lint 1.57.2 in
+`.tools/.venv` and Guard 3.2.1 in `.tools/bin`, using official release archives with
+pinned SHA-256 checksums. This opt-in preparation needs network access; subsequent
+checks remain offline and find local tools without changing your shell PATH.
+Existing tools on PATH are reused; no global installation is performed.
+Retry an already initialized project from this checkout with:
+
+```powershell
+uv run agentready bootstrap "C:\a_workspace\asia\aws\asia-infrastructure"
+```
 
 For a GitHub release installation, download its wheel from
 [Releases](https://github.com/massaro8/programming_agents/releases), then use
@@ -312,7 +322,7 @@ Only the latest release receives fixes.
 | Work/index check fails | Complete the specification and run `work sync`, then `work check`. |
 | Busy or stale lock | Confirm the writer has stopped before removing only the reported lock. |
 | Malformed metadata or partial detach | Restore trusted original data and follow the recovery procedure. |
-| Missing cfn-lint / Guard | Follow the generated README's local installation steps; checks fail until both are available. |
+| Missing cfn-lint / Guard | Run `agentready bootstrap <project-path>` or the generated `python scripts/project.py bootstrap`; missing tools are installed locally. |
 | DONE rejects evidence | Run sync and genuine `verify --work Wxxx` against current inputs; prose alone is insufficient. |
 
 See [recovery and retry](docs/USER_GUIDE.md#recovery-and-retry) for stale locks, interrupted

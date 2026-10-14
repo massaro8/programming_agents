@@ -1,6 +1,6 @@
 # Codebase Map
 
-Structure fingerprint: `49c8567e2386`
+Structure fingerprint: `90c4f7d9a2ec`
 
 Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 
@@ -168,6 +168,7 @@ Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 - `src/agentready/doctor/work.py`
 - `src/agentready/environment_contracts.py`
 - `src/agentready/hooks.py`
+- `src/agentready/infrastructure_tools.py`
 - `src/agentready/local_paths.py`
 - `src/agentready/render/__init__.py`
 - `src/agentready/render/existing.py`
@@ -252,6 +253,7 @@ Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 - `src/agentready/templates/cloudformation/template/scripts/generate_codebase_map.py`
 - `src/agentready/templates/cloudformation/template/scripts/hooks.py.jinja`
 - `src/agentready/templates/cloudformation/template/scripts/infrastructure_checks.py`
+- `src/agentready/templates/cloudformation/template/scripts/infrastructure_tools.py.jinja`
 - `src/agentready/templates/cloudformation/template/scripts/local_paths.py.jinja`
 - `src/agentready/templates/cloudformation/template/scripts/project.py`
 - `src/agentready/templates/cloudformation/template/scripts/skill_check.py.jinja`
@@ -392,6 +394,7 @@ Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 - `tests/test_generated_architecture.py`
 - `tests/test_generated_context.py`
 - `tests/test_generated_project.py`
+- `tests/test_infrastructure_tools.py`
 - `tests/test_init.py`
 - `tests/test_ownership.py`
 - `tests/test_package_check.py`

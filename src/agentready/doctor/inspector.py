@@ -16,6 +16,8 @@ from agentready.doctor.codebase_map import validate as validate_codebase_map
 from agentready.doctor.evolution import validate as validate_evolution
 from agentready.doctor.work import validate as validate_work
 
+OPTIONAL_SHARED = (*EVOLUTION_SHARED, "scripts/infrastructure_tools.py")
+
 CHECKS = (
     "project.root",
     "manifest.present",
@@ -247,7 +249,7 @@ def inspect(root: Path | str = ".") -> DoctorReport:
                 }
                 for cls in OwnershipClass
             }
-            optional = set(EVOLUTION_SHARED)
+            optional = set(OPTIONAL_SHARED)
             paths_ok = all(
                 actual[cls] <= expected[cls]
                 and expected[cls] - actual[cls]
@@ -352,7 +354,7 @@ def inspect(root: Path | str = ".") -> DoctorReport:
     structure_ok = all(
         _safe_file(project, str(path))
         for path in required
-        if path.as_posix() not in EVOLUTION_SHARED
+        if path.as_posix() not in OPTIONAL_SHARED
     ) and all(
         (project.path / x).is_dir()
         and not (project.path / x).is_symlink()

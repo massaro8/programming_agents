@@ -25,6 +25,8 @@ def check_commands():
 def execute(task, arguments=None):
     arguments = arguments or []
     if task == "bootstrap":
+        from infrastructure_tools import prepare_tools
+        prepare_tools(ROOT)
         if execute("sync"):
             return 1
         return execute("check")

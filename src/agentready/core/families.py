@@ -36,6 +36,7 @@ def component_path(path: str) -> str | None:
     ) or path in (
         "scripts/fixture_check.py",
         "scripts/infrastructure_checks.py",
+        "scripts/infrastructure_tools.py",
         "scripts/environment_contracts.py",
         "scripts/aws_inspection.py",
         "docs/infrastructure/environments.json",
