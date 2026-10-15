@@ -1,0 +1,1 @@
+{"schema_version":1,"max_age_seconds":86400,"required_stages":{"default":["Ruff","format","mypy","focused regression","codebase map"]}}

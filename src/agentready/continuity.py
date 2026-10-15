@@ -86,6 +86,8 @@ def _project_names(root: Path) -> list[str]:
         "src",
         "infrastructure",
         "templates",
+        "stacks",
+        "deployment",
         "parameters",
         "policies",
         "scripts",

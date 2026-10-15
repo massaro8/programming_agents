@@ -49,12 +49,12 @@ def test_cloudformation_doctor_readonly_and_detach(tmp_path: Path) -> None:
 def test_cloudformation_navigation_and_adapter_drift(tmp_path: Path) -> None:
     root = tmp_path / "infrastructure"
     generate_project(root, family="cloudformation")
-    (root / "templates/new.yaml").write_text("Resources: {}\n", encoding="utf-8")
+    (root / "stacks/storage/new.yaml").write_text("Resources: {}\n", encoding="utf-8")
     report = inspect(root)
     assert (
         next(f for f in report.findings if f.check_id == "repository.codebase_map").status.value
         != "PASS"
     )
-    (root / "templates/new.yaml").unlink()
+    (root / "stacks/storage/new.yaml").unlink()
     (root / "CLAUDE.md").write_text("Read AGENTS.md\n", encoding="utf-8")
     assert not inspect(root).healthy

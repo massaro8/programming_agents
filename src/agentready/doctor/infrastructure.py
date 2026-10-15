@@ -10,6 +10,9 @@ from pathlib import Path
 
 AREAS = (
     "templates",
+    "stacks",
+    "deployment",
+    ".githooks",
     "parameters",
     "policies",
     "scripts",
@@ -18,6 +21,7 @@ AREAS = (
     "docs/work",
     "docs/agent",
     "tests/fixtures",
+    "tests/engine",
 )
 
 

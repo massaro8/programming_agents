@@ -1,10 +1,12 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: Synthetic private artifact storage for offline engineering experiments only.
+Metadata:
+  AWSToolsMetrics:
+    AWSAgentToolkit: aws-cloudformation@3
 Parameters:
-  Environment:
+  EnvironmentName:
     Type: String
     Default: sandbox
-    AllowedValues: [sandbox, test]
 Resources:
   Artifacts:
     Type: AWS::S3::Bucket
@@ -28,7 +30,7 @@ Resources:
         Status: Enabled
       Tags:
         - Key: Environment
-          Value: !Ref Environment
+          Value: !Ref EnvironmentName
   ArtifactsPolicy:
     Type: AWS::S3::BucketPolicy
     Metadata:

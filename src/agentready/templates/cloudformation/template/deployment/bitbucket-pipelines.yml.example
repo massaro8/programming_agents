@@ -1,0 +1,35 @@
+# OPTIONAL FRAGMENT ONLY. Merge custom entries into bitbucket-pipelines.yml after
+# explicit review/configuration; retain the existing default validation pipeline.
+# Replace sandbox with your declared deployment environment. Never run on every push.
+custom:
+  inspect-sandbox:
+    - step:
+        name: Inspect stacks (read only)
+        image: public.ecr.aws/aws-cli/aws-cli:2.37.10
+        oidc: true
+        deployment: sandbox
+        script:
+          - bash scripts/deploy.sh inspect sandbox
+  plan-sandbox:
+    - variables:
+        - name: STACK_ID
+          default: artifact-storage
+          allowed-values:
+            - artifact-storage
+    - step:
+        name: Create authorized plan (does not execute)
+        image: public.ecr.aws/aws-cli/aws-cli:2.37.10
+        oidc: true
+        deployment: sandbox
+        script:
+          - bash scripts/deploy.sh plan sandbox "$STACK_ID" --authorize-plan
+  execute-reviewed-sandbox:
+    - variables:
+        - name: CHANGE_SET_ARN
+    - step:
+        name: Execute separately reviewed exact change set
+        image: public.ecr.aws/aws-cli/aws-cli:2.37.10
+        oidc: true
+        deployment: sandbox
+        script:
+          - bash scripts/deploy.sh execute sandbox "$CHANGE_SET_ARN" --authorize-execution "$CHANGE_SET_ARN"

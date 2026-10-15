@@ -14,10 +14,14 @@ SUPPORTED_FAMILIES = ("python", "cloudformation")
 
 def component_path(path: str) -> str | None:
     """Map the additive infrastructure artifacts into a Python repository."""
-    if path.startswith(("templates/", "parameters/", "policies/")) or (
+    if path.startswith("tests/engine/"):
+        return "infrastructure/" + path
+    if path.startswith(("templates/", "stacks/", "deployment/", "parameters/", "policies/")) or (
         path.startswith("tests/fixtures/") and path.endswith(".yaml")
     ):
         return "infrastructure/" + path
+    if path == "docs/adr/0001-catalog-driven-cloudformation.md":
+        return "docs/infrastructure/adr/0001-catalog-driven-cloudformation.md"
     if path.startswith("docs/agent/"):
         return path.replace("docs/agent/", "docs/infrastructure/", 1)
     if path in ("README.md", "docs/ARCHITECTURE.md", ".cfnlintrc"):
@@ -34,6 +38,12 @@ def component_path(path: str) -> str | None:
             ".claude/skills/aws-infrastructure-inspection/",
         )
     ) or path in (
+        "scripts/cfn_lib.sh",
+        "scripts/deploy.sh",
+        "scripts/bootstrap.sh",
+        "scripts/validate.sh",
+        ".gitattributes",
+        ".githooks/pre-push",
         "scripts/fixture_check.py",
         "scripts/infrastructure_checks.py",
         "scripts/infrastructure_tools.py",
@@ -94,7 +104,9 @@ class InfrastructureContract:
         project = tuple(
             path
             for path in paths
-            if path.startswith(("templates/", "parameters/", "policies/", ".github/"))
+            if path.startswith(
+                ("templates/", "stacks/", "deployment/", "parameters/", "policies/", ".github/")
+            )
             or path in ("README.md", ".gitignore", ".cfnlintrc", "docs/ARCHITECTURE.md")
         )
         shared = tuple(path for path in paths if path not in (*generated, *project))

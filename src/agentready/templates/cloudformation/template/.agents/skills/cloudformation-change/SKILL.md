@@ -43,3 +43,16 @@ Do not use for typo-only edits, investigation without accepted scope, or bugs re
 
 ## Output contract
 Return a concise outcome, changed files or findings, verification evidence, and unresolved risks. Preserve the owning work item as the durable implementation record.
+
+## CloudFormation conventions
+
+Place resources by responsibility under stacks/<domain>/ (infrastructure/stacks in Hybrid).
+Register every deployable template in stacks/catalog.conf: stage, stack id, path, environments
+or `-`. Order prerequisites before consumers; names of folders do not schedule deployment.
+Use EnvironmentName, unique upstream output names and CloudFormation defaults/SSM parameter
+keys. Do not put secrets in Outputs. Validate with scripts/project.py verify, including fake
+AWS engine tests; sync maps and skill views. Read docs/infrastructure/ENGINEERING.md before
+changing catalog/environment/parameter contracts. Reuse aws-infrastructure-inspection for
+explicit read-only AWS work. Default CI never deploys. Optional scripts/deploy.sh requires
+explicit configuration, OIDC identity checks, plan authorization and a separate exact-ARN
+execution authorization. IAM bootstrap is operator owned, outside the catalog.

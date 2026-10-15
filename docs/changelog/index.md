@@ -4,6 +4,7 @@
 
 ## Completed work
 
+- W007 [FEATURE] **CloudFormation catalog standardization** — Catalog-driven infrastructure defaults and optional reviewed Bash change sets.; BREAKING
 - W006 [FEATURE] **Feature evolution regression audit** — Independent generation/detach qualification plus narrow feature regressions and full existing quality gates; no unrelated refactoring.
 - W005 [FEATURE] **Extension architecture decision** — EXTENSION SYSTEM: NOT JUSTIFIED. Only hooks have activation lifecycle; existing source export, ownership and composed doctor validators suffice.
 - W004 [FEATURE] **Work checkpoint and resume** — Wxxx-linked bounded JSON state; current code/work authority, revision and file hashes; explicit replacement and stale warnings; no conversation capture.

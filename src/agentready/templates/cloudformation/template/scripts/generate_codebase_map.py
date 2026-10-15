@@ -6,7 +6,7 @@ import os
 from local_paths import local_path, repository_write
 
 ROOT = Path(__file__).resolve().parents[1]
-AREAS = ("templates", "parameters", "policies", "scripts", ".agents/skills", ".claude/skills", "docs/work", "docs/agent", "tests/fixtures")
+AREAS = ("stacks", "deployment", ".githooks", "templates", "parameters", "policies", "scripts", ".agents/skills", ".claude/skills", "docs/work", "docs/agent", "tests/fixtures", "tests/engine")
 
 def render(root):
     paths = []

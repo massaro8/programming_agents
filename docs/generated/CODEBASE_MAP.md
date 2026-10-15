@@ -1,6 +1,6 @@
 # Codebase Map
 
-Structure fingerprint: `90c4f7d9a2ec`
+Structure fingerprint: `d46c1caf097c`
 
 Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 
@@ -85,9 +85,11 @@ Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 - `docs/adr/0000-template.md`
 - `docs/adr/0001-static-project-families.md`
 - `docs/adr/0002-bundled-infrastructure-composition.md`
+- `docs/adr/0003-catalog-driven-cloudformation.md`
 - `docs/audits/ADVERSARIAL_STRESS_AUDIT.md`
 - `docs/audits/BOOT_001_AUDIT.md`
 - `docs/audits/BOOT_002_AUDIT.md`
+- `docs/audits/CFN_STANDARDIZATION_001.md`
 - `docs/audits/CLOUDFORMATION_FEASIBILITY.md`
 - `docs/audits/DET_001_AUDIT.md`
 - `docs/audits/DET_002_AUDIT.md`
@@ -114,12 +116,15 @@ Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 - `docs/changelog/index.md`
 - `docs/generated/CODEBASE_MAP.md`
 - `docs/releases/0.1.0.md`
+- `docs/verification.json`
+- `docs/verification/W007.json`
 - `docs/work/W001-skill-contract-and-doctor-validation.md`
 - `docs/work/W002-portable-skill-evaluation.md`
 - `docs/work/W003-opt-in-repository-hooks.md`
 - `docs/work/W004-work-checkpoint-and-resume.md`
 - `docs/work/W005-extension-architecture-decision.md`
 - `docs/work/W006-feature-evolution-regression-audit.md`
+- `docs/work/W007-cloudformation-catalog-standardization.md`
 - `docs/work/index.md`
 - `docs/work/templates/feature.md`
 
@@ -206,14 +211,19 @@ Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 - `src/agentready/templates/cloudformation/template/.claude/skills/refactoring/SKILL.md.jinja`
 - `src/agentready/templates/cloudformation/template/.claude/skills/repo-explore/SKILL.md.jinja`
 - `src/agentready/templates/cloudformation/template/.claude/skills/security-review/SKILL.md.jinja`
+- `src/agentready/templates/cloudformation/template/.gitattributes`
+- `src/agentready/templates/cloudformation/template/.githooks/pre-push`
 - `src/agentready/templates/cloudformation/template/.github/workflows/ci.yml`
 - `src/agentready/templates/cloudformation/template/.gitignore`
 - `src/agentready/templates/cloudformation/template/AGENTS.md`
 - `src/agentready/templates/cloudformation/template/CLAUDE.md`
 - `src/agentready/templates/cloudformation/template/README.md.jinja`
 - `src/agentready/templates/cloudformation/template/bitbucket-pipelines.yml`
+- `src/agentready/templates/cloudformation/template/deployment/bitbucket-pipelines.yml.example`
+- `src/agentready/templates/cloudformation/template/deployment/environments.conf`
 - `src/agentready/templates/cloudformation/template/docs/ARCHITECTURE.md`
 - `src/agentready/templates/cloudformation/template/docs/adr/0000-template.md`
+- `src/agentready/templates/cloudformation/template/docs/adr/0001-catalog-driven-cloudformation.md`
 - `src/agentready/templates/cloudformation/template/docs/agent/index.md`
 - `src/agentready/templates/cloudformation/template/docs/agent/standards/architecture.md.jinja`
 - `src/agentready/templates/cloudformation/template/docs/agent/standards/context-efficiency.md`
@@ -246,8 +256,11 @@ Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 - `src/agentready/templates/cloudformation/template/parameters/sandbox.json`
 - `src/agentready/templates/cloudformation/template/policies/security.guard`
 - `src/agentready/templates/cloudformation/template/scripts/aws_inspection.py.jinja`
+- `src/agentready/templates/cloudformation/template/scripts/bootstrap.sh`
+- `src/agentready/templates/cloudformation/template/scripts/cfn_lib.sh`
 - `src/agentready/templates/cloudformation/template/scripts/context.py.jinja`
 - `src/agentready/templates/cloudformation/template/scripts/continuity.py.jinja`
+- `src/agentready/templates/cloudformation/template/scripts/deploy.sh`
 - `src/agentready/templates/cloudformation/template/scripts/environment_contracts.py.jinja`
 - `src/agentready/templates/cloudformation/template/scripts/fixture_check.py`
 - `src/agentready/templates/cloudformation/template/scripts/generate_codebase_map.py`
@@ -260,9 +273,13 @@ Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 - `src/agentready/templates/cloudformation/template/scripts/skill_qa.py.jinja`
 - `src/agentready/templates/cloudformation/template/scripts/skill_routes.py.jinja`
 - `src/agentready/templates/cloudformation/template/scripts/status.py.jinja`
+- `src/agentready/templates/cloudformation/template/scripts/validate.sh`
 - `src/agentready/templates/cloudformation/template/scripts/verification.py.jinja`
 - `src/agentready/templates/cloudformation/template/scripts/work_registry.py.jinja`
-- `src/agentready/templates/cloudformation/template/templates/storage.yaml`
+- `src/agentready/templates/cloudformation/template/stacks/catalog.conf`
+- `src/agentready/templates/cloudformation/template/stacks/storage/artifacts.yaml`
+- `src/agentready/templates/cloudformation/template/tests/engine/aws-fake.sh`
+- `src/agentready/templates/cloudformation/template/tests/engine/run.sh`
 - `src/agentready/templates/cloudformation/template/tests/fixtures/broken-reference.yaml`
 - `src/agentready/templates/cloudformation/template/tests/fixtures/invalid-property.yaml`
 - `src/agentready/templates/cloudformation/template/tests/fixtures/missing-encryption.yaml`
@@ -378,6 +395,7 @@ Do not edit manually. Regenerate with `python scripts/generate_codebase_map.py`.
 - `tests/test_adversarial_boundaries.py`
 - `tests/test_aws_inspection.py`
 - `tests/test_bootstrap.py`
+- `tests/test_cfn_standard.py`
 - `tests/test_cloudformation.py`
 - `tests/test_codebase_map.py`
 - `tests/test_composition.py`

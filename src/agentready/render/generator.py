@@ -206,11 +206,18 @@ def _render_component(root: Path, data: dict[str, object]) -> None:
             for old, new in (
                 ("docs/agent/", "docs/infrastructure/"),
                 ("tests/fixtures/", "infrastructure/tests/fixtures/"),
+                ("stacks/", "infrastructure/stacks/"),
                 ("templates/", "infrastructure/templates/"),
                 ("parameters/", "infrastructure/parameters/"),
                 ("policies/", "infrastructure/policies/"),
             ):
-                if relative not in (
+                if not relative.startswith("tests/engine/") and relative not in (
+                    "stacks/catalog.conf",
+                    "docs/infrastructure/ENGINEERING.md",
+                    "scripts/cfn_lib.sh",
+                    "scripts/deploy.sh",
+                    "scripts/validate.sh",
+                    "scripts/bootstrap.sh",
                     "scripts/infrastructure_checks.py",
                     "scripts/fixture_check.py",
                     "scripts/environment_contracts.py",
@@ -218,6 +225,10 @@ def _render_component(root: Path, data: dict[str, object]) -> None:
                     "scripts/infrastructure_tools.py",
                 ):
                     text = text.replace(old, new)
+            if relative == "docs/ARCHITECTURE.md":
+                text = text.replace("(infrastructure/ENGINEERING.md)", "(ENGINEERING.md)")
+            if relative == "README.md":
+                text = text.replace("(docs/infrastructure/ENGINEERING.md)", "(ENGINEERING.md)")
             path.write_text(text, encoding="utf-8", newline="\n")
     workflow = root / ".github/workflows/ci.yml"
     ignore = root / ".gitignore"
@@ -266,6 +277,9 @@ def _render_component(root: Path, data: dict[str, object]) -> None:
         "cfn-lint",
         "Guard",
         "negative fixtures",
+        "stack catalog",
+        "shell syntax",
+        "engine tests",
     ]
     settings["required_stages"]["DOCS"] = settings["required_stages"]["default"]
     config.write_text(json.dumps(settings, indent=2) + "\n", encoding="utf-8")

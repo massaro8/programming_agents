@@ -196,3 +196,6 @@ assets live under `infrastructure/`, guidance under `docs/infrastructure/`. One 
 registry, receipt store and project command interface serve both domains. Shared
 checks remain local and survive removal of `.agentready/`. Hybrid verification runs
 both domains conservatively, including DOCS tasks, so labels cannot hide infrastructure changes.
+
+CloudFormation generation uses domain stacks and a strict ordered catalog; optional native
+Bash/AWS CLI execution is separately configured and authorized. See [ADR 0003](adr/0003-catalog-driven-cloudformation.md).

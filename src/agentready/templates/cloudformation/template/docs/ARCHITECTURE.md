@@ -1,3 +1,10 @@
 # Architecture
 
-CloudFormation templates own infrastructure; Guard policies own selected local security controls. Standalone stdlib scripts own repository governance. No AgentReady runtime dependency or deployment command exists.
+CloudFormation stacks under `stacks/<domain>/` own resources and stable parameter/output
+contracts. The four-column catalog owns order and environment enablement; directories own
+responsibility. Guard owns static policy checks. Standalone Python owns local governance.
+Bash/AWS CLI owns an optional, separately configured and authorized change-set workflow.
+
+Default CI validates offline. Bootstrap IAM is operator controlled and outside the catalog.
+No generated application imports AgentReady. See [engineering](infrastructure/ENGINEERING.md)
+for catalog, OIDC, configuration, review, failure and rollback contracts.

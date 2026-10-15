@@ -10,11 +10,11 @@ Bootstrap prepares tools, syncs and checks the project. Afterwards run `python s
 
 ## Repository organization
 
-`templates/` owns resources, inputs and outputs; `parameters/` stores synthetic environment parameter values; `policies/` owns Guard security constraints. `scripts/` contains standard-library governance commands. `.agents/skills/` is canonical; Claude adapters point there. Work records live in `docs/work/`; verification receipts in `docs/verification/` and checkpoints in `docs/work/checkpoints/`.
+`stacks/<domain>/` owns resources, inputs and outputs; `stacks/catalog.conf` defines stage order and environment enablement; `parameters/` stores synthetic environment parameter values; `policies/` owns Guard security constraints. `scripts/` contains standard-library governance commands. `.agents/skills/` is canonical; Claude adapters point there. Work records live in `docs/work/`; verification receipts in `docs/verification/` and checkpoints in `docs/work/checkpoints/`.
 
 ## Add an infrastructure component
 
-Search the map and existing templates. Add a focused `templates/<component>.yaml`, avoiding fixed physical names, real account IDs and secrets. Describe parameter/output contracts, ownership and retention in `docs/ARCHITECTURE.md`. Add positive and relevant negative fixtures, then run `python scripts/project.py sync` and `python scripts/project.py verify`. Extend fixture_check.py explicitly when adding a new failure expectation.
+Search the map and existing templates. Add a focused `stacks/<domain>/<component>.yaml`, avoiding fixed physical names, real account IDs and secrets. Describe parameter/output contracts, ownership and retention in `docs/ARCHITECTURE.md`. Add positive and relevant negative fixtures, then run `python scripts/project.py sync` and `python scripts/project.py verify`. Extend fixture_check.py explicitly when adding a new failure expectation.
 
 ## Work lifecycle and evidence
 
@@ -25,3 +25,16 @@ Create work with `python scripts/project.py work new --type FEATURE "Title"`; de
 The static baseline checks S3 encryption presence, public access blocking, versioning, retention, plaintext-transport deny presence, and unrestricted ingress. For bucket templates the TLS check requires at least one suitable deny statement; explicitly review policy association and Resource coverage for every bucket. IAM least privilege, encryption details, network intent and account-specific controls require review. Static checks do not prove deployment success.
 
 Deployment is a separate manual action requiring explicit authorization, credentials, target-account review and change-set review. None of bootstrap, check, verify or sync deploys resources.
+
+## Catalog and optional deployment
+
+The initial storage stack is registered but disabled (`-`). Add only purposeful domains,
+register templates in lexical stage order, and use stable parameter/output names. Both
+`.yaml` and `.yml` work. Run `bash scripts/deploy.sh catalog` offline.
+
+Read [the engineering contract](docs/infrastructure/ENGINEERING.md) for SSM inputs,
+explicit branch/account/region mapping, OIDC provider/bootstrap/DeploymentRole/ExecutionRole
+separation, optional pre-push hooks and Bitbucket custom steps. `deployment/environments.conf`
+is deliberately unconfigured. Default pipelines only validate; no AWS writes run on pushes.
+The optional Bash/AWS CLI runner requires separate plan and exact-change-set execution
+authorization and rejects removal/replacement risk. It has no Python deployment dependencies.

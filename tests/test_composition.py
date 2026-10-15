@@ -14,7 +14,7 @@ def test_composed_project(tmp_path):
     manifest = tomllib.loads((root / ".agentready/manifest.toml").read_text())
     assert manifest["family"] == "python"
     assert manifest["components"] == ["cloudformation"]
-    assert (root / "infrastructure/templates/storage.yaml").exists()
+    assert (root / "infrastructure/stacks/storage/artifacts.yaml").exists()
     for script in ("skill_check.py", "environment_contracts.py", "generate_codebase_map.py"):
         arguments = ["--check"] if script == "generate_codebase_map.py" else []
         result = subprocess.run(
@@ -24,7 +24,7 @@ def test_composed_project(tmp_path):
             encoding="utf-8",
         )
         assert result.returncode == 0, result.stdout + result.stderr
-    assert "infrastructure/templates/" in (root / "docs/generated/CODEBASE_MAP.md").read_text()
+    assert "infrastructure/stacks/" in (root / "docs/generated/CODEBASE_MAP.md").read_text()
     assert (
         "infrastructure/infrastructure"
         not in (root / "scripts/infrastructure_checks.py").read_text()

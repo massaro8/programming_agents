@@ -351,6 +351,7 @@ def inspect(root: Path | str = ".") -> DoctorReport:
     )
     package = project.path.name.replace("-", "_")
     required = profile_contract.required_paths(package) if profile_contract is not None else ()
+    infrastructure_area = "stacks" if (project.path / "stacks").exists() else "templates"
     structure_ok = all(
         _safe_file(project, str(path))
         for path in required
@@ -359,7 +360,9 @@ def inspect(root: Path | str = ".") -> DoctorReport:
         (project.path / x).is_dir()
         and not (project.path / x).is_symlink()
         and not (project.path / x).is_junction()
-        for x in (("src", "tests") if family == "python" else ("templates", "policies", "tests"))
+        for x in (
+            ("src", "tests") if family == "python" else (infrastructure_area, "policies", "tests")
+        )
     )
     findings.append(
         _finding(

@@ -1,6 +1,9 @@
 """Shared offline infrastructure stage selection."""
 
+import os
+import shutil
 import sys
+from pathlib import Path
 
 from infrastructure_tools import find_tool
 
@@ -22,9 +25,16 @@ def commands(root):
     commands = [
         ("environment contracts", [sys.executable, "scripts/environment_contracts.py", "check"])
     ]
+    git_bash = Path(os.environ.get("PROGRAMFILES", "C:/Program Files")) / "Git/bin/bash.exe"
+    bash = str(git_bash) if sys.platform == "win32" and git_bash.is_file() else shutil.which("bash")
+    if not bash:
+        raise ValueError("Missing Bash 4+; install Git Bash on Windows and add its bin to PATH")
+    commands.append(("stack catalog", [bash, "scripts/deploy.sh", "catalog"]))
+    for script in ("cfn_lib.sh", "deploy.sh", "validate.sh", "bootstrap.sh"):
+        commands.append(("shell syntax", [bash, "-n", "scripts/" + script]))
     for template in sorted(
         local_path(
-            root, "infrastructure/templates" if (root / "infrastructure").is_dir() else "templates"
+            root, "infrastructure/stacks" if (root / "infrastructure").is_dir() else "stacks"
         ).rglob("*")
     ):
         template = local_path(root, template.relative_to(root).as_posix())
@@ -52,5 +62,11 @@ def commands(root):
                     ),
                 ]
             )
+    engine = (
+        "infrastructure/tests/engine/run.sh"
+        if (root / "infrastructure").is_dir()
+        else "tests/engine/run.sh"
+    )
+    commands.append(("engine tests", [bash, engine]))
     commands.append(("negative fixtures", [sys.executable, "scripts/fixture_check.py"]))
     return commands

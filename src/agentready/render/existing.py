@@ -135,7 +135,7 @@ def initialize_existing(root: Path, render: Callable[[Path], Project]) -> None:
                         data = _readme(originals[name], data)
                     elif name == ".gitignore":
                         data = _gitignore(originals[name], data)
-                    elif name.startswith("LICENSE"):
+                    elif name.startswith("LICENSE") or name == ".gitattributes":
                         continue
                     else:
                         raise ExistingInitError(f"generated filename collision: {name}")

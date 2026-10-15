@@ -335,3 +335,29 @@ CloudFormation alongside a Python application can use its Python profile with se
 checks. CloudFormation-only generation is experimental and is **not a supported profile**.
 See [the feasibility experiment](docs/audits/CLOUDFORMATION_FEASIBILITY.md) for the standalone
 repository approach and local validation evidence.
+
+## CloudFormation catalog standard
+
+New infrastructure repositories group templates in `stacks/<domain>/`; Hybrid uses
+`infrastructure/stacks/` with the same shared governance. A four-column `stacks/catalog.conf`
+records lexical stage order, unique stack id, template path (`.yaml`/`.yml`) and enabled
+environments (`-` disables). The retained private S3 example starts disabled. Existing
+repositories are not migrated or overwritten.
+
+`python scripts/project.py verify` checks the catalog, shell syntax, fake-AWS engine,
+cfn-lint, Guard and existing fixtures, alongside normal work/skill/map checks. Python checks
+remain in Hybrid. Optional `.githooks/pre-push` is activated per clone with
+`chmod +x .githooks/pre-push` followed by `git config --local core.hooksPath .githooks`;
+no global configuration changes.
+
+Default pipelines validate offline. The optional Bash/AWS CLI workflow ships unconfigured:
+branch/environment/account/region and separate OIDC deployment/execution roles require
+explicit setup. Bootstrap IAM is operator owned and outside the catalog. Plan creation
+requires authorization; execution requires separately reviewing and authorizing an exact
+change-set ARN. No deletion/replacement, automatic downstream execution or secret logging.
+Parameters use EnvironmentName, uniquely matching earlier outputs, or native defaults/SSM
+keys; supported secure dynamic references stay native to CloudFormation. Sequences are not
+transactional. See generated `docs/infrastructure/ENGINEERING.md` and
+[ADR 0003](docs/adr/0003-catalog-driven-cloudformation.md) for configuration and limitations.
+Detach preserves these ordinary scripts, templates, CI and instructions without an AgentReady
+runtime or service.
